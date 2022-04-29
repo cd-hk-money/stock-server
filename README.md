@@ -77,5 +77,5 @@ code : { name, close, changes_ratio }
 /api/stock/graph/{name}/{start}/{end} : 커스텀 날짜 데이터, 2017-03-30 ~ 2022-04-27 이내에서 가능
 /api/stock/statement/{name} : 최근 4분기 재무제표 데이터
 /api/stock/indicator/{name} : 최근 4분기 보조지표(EPS, BPS, ROE) 데이터 + 가장 최근 per, pbr 인데 ... 현재는 0 
-/api/stock/graph/{type}/{name} : 영업이익, 매출액 그래프용 5년치 데이터 type = ebitda, revenue 둘 중 하나. 
+/api/stock/statement/{type}/{name} : 영업이익, 매출액 그래프용 5년치 데이터 type = ebitda, revenue 둘 중 하나. 
 
