@@ -61,10 +61,10 @@ async def stockinfo(name: str):
         "stocks": data[12]
     })
 
-#영업이익, 매출액 그래프 type 으로 구분
-@app.get("/api/stock/graph/{type}/{name}")
-async def ebitda_graph(type:str, name: str):
-    res = testcontroller.type2graph(type, name)
+#5년 주가 데이터 (소요시간 7초)
+@app.get("/api/stock/graph/{name}/{flag}")
+async def detailgraph(name: str, flag: str):
+    res = testcontroller.graph5year(name)
     return res
 
 #2주 주가 데이터 (시간 벌기용)
@@ -73,18 +73,18 @@ async def stockgraph(name: str):
     res = testcontroller.graph2weeks(name)
     return res
 
-#5년 주가 데이터 (소요시간 7초)
-@app.get("/api/stock/graph/{name}/{flag}")
-async def detailgraph(name: str, flag: int):
-    res = testcontroller.graph5year(name)
-    return res
-
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/api/stock/graph/{name}/{start}/{end}")
 async def custom_graph(name:str, start:str, end:str):
     res = testcontroller.graph_detail(name, start, end)
     return res
 
+#영업이익, 매출액 그래프 type 으로 구분
+@app.get("/api/stock/statement/{type}/{name}")
+async def ebitda_graph(type:str, name: str):
+    res = testcontroller.type2graph(type, name)
+    return res
+    
 #기업의 재무제표 (최근 4분기)
 @app.get("/api/stock/statement/{name}")
 async def stock_statement(name: str):
@@ -96,4 +96,3 @@ async def stock_statement(name: str):
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
     return res
-

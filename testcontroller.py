@@ -17,7 +17,12 @@ def lastday():
     curs.execute(sql)
     data = curs.fetchall()
 
+    conn.commit()
+
     return data[0][0]
+
+temp = lastday()
+last_day = temp
 
 def match_corp():
     sql = "select code, name from corp_krx"
@@ -27,8 +32,8 @@ def match_corp():
     data = process_data.codelist(temp)
 
     js = json.dumps(data, ensure_ascii=False)
+
     conn.commit()
-    conn.close()
 
     return data
 
@@ -40,8 +45,8 @@ def match_krx():
     data = process_data.codelist(temp)
 
     js = json.dumps(data, ensure_ascii=False)
+
     conn.commit()
-    conn.close()
 
     return data
 
@@ -54,13 +59,10 @@ def find_daily_total():
     js = json.dumps(data, ensure_ascii=False)
 
     conn.commit()
-    conn.close()
 
     return data
 
 def daily_rank():
-    last_day = lastday()
-
     #시총 TOP10
     sql = "select code, name, close, marcap from stock_marcap where date = %s ORDER BY marcap DESC limit 10" 
     curs.execute(sql, last_day)
@@ -92,13 +94,11 @@ def daily_rank():
     res = dict(dict1, **dict2, **dict3, **dict4)
 
     conn.commit()
-    conn.close()
 
     return res
 
 def find_recommand():
     dict = defaultdict(list)
-    last_day = lastday()
 
     sql = "select code from corp_krx ORDER BY RAND() LIMIT 12"
     curs.execute(sql)
@@ -114,55 +114,52 @@ def find_recommand():
     
     return dict
 
-        
-    
-
 def stock_info(name):
     sql = "select * from stock_marcap where name = %s ORDER BY date DESC limit 1"
     curs.execute(sql, name)
     data = curs.fetchall()
     
     if len(data) == 0:
+        conn.commit()
+
         return "잘못된 기업명입니다~"
 
     data = data[0]
     
     conn.commit()
-    conn.close()
 
     return data
 
 def graph2weeks(name):
-    last_day = lastday()
-
     sql = "select date, close from stock_marcap where name = %s and date >= DATE_ADD(%s, INTERVAL -14 DAY) ORDER BY date ASC limit 14"
     curs.execute(sql, (name, last_day))
     data = curs.fetchall()
     
     if len(data) == 0:
+        
+        conn.commit()
+
         return "잘못된 기업명입니다~"
     
     res = process_data.data2grahp(data)
 
     conn.commit()
-    conn.close()
 
     return res
 
 def graph5year(name):
-    last_day = lastday()
-
     sql = "select date, close from stock_marcap where name = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
     curs.execute(sql, (name, last_day))
     data = curs.fetchall()
-
+    
     if len(data) == 0:
+        conn.commit()
+    
         return "잘못된 기업명입니다~"
 
     res = process_data.data2grahp(data)
 
     conn.commit()
-    conn.close()
 
     return res
 
@@ -171,12 +168,14 @@ def graph_detail(name, start, end):
     curs.execute(sql, (name, start, end))
     data = curs.fetchall()
     if len(data) == 0:
+
+        conn.commit()
+    
         return "잘못된 기업명 or 해당 날짜 데이터가 없어요~"
 
     res = process_data.data2grahp(data)
 
     conn.commit()
-    conn.close()
 
     return res
 
@@ -186,6 +185,8 @@ def type2graph(type, name):
     temp = curs.fetchall()
     
     if len(temp) == 0:
+        conn.commit()
+    
         return "선물 혹은 잘못된 기업명이에요~"
 
     code = temp[0][0]
@@ -199,12 +200,13 @@ def type2graph(type, name):
     data = curs.fetchall()
 
     if len(data) == 0:
+        conn.commit()
+    
         return "재무제표가 없어요~"
     
     res = process_data.data2grahp(data)
 
     conn.commit()
-    conn.close()
 
     return res
 
@@ -214,6 +216,8 @@ def find_statement(name):
     temp = curs.fetchall()
     
     if len(temp) == 0:
+        conn.commit()
+    
         return "선물 혹은 잘못된 기업명이에요~"
 
     code = temp[0][0]
@@ -225,37 +229,37 @@ def find_statement(name):
     res = process_data.state2dict(data)
     
     conn.commit()
-    conn.close()
     
     return res
    
 def find_indicator(name):
-    last_day = lastday()
-
     sql = "select code from corp_krx where name = %s"
     curs.execute(sql, name)
     temp = curs.fetchall()
-    
-    if len(temp) == 0:
-        return "선물 혹은 잘못된 기업명이에요~"
-
+        
+    if len(temp) == 0:    
+       return "선물 혹은 잘못된 기업명이에요~"
+    conn.commit()
     code = temp[0][0]
 
     sql = "select * from stock_indicator where code = %s ORDER BY date DESC limit 4"
     curs.execute(sql, code)
-    
     data = curs.fetchall()
     res = process_data.indi2dict(data)
-    
+        
+    conn.commit()
+
     sql = "select per, pbr from stock_marcap where name = %s and date = %s"
     curs.execute(sql, (name, last_day))
     temp = curs.fetchall()
-    
-    dic = {"per": temp[0][0], "pbr":temp[0][1]}
+        
+    if len(temp) == 0:
+        dic = {"per": 0, "pbr": 0}
+    else:
+        dic = {"per": temp[0][0], "pbr":temp[0][1]}
 
     res.update(dic)
 
     conn.commit()
-    conn.close()
-    
+
     return res
