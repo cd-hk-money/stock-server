@@ -53,7 +53,7 @@ MYSQL로 진행해야 하며 DB명 바꿀 때 db = "capstone" 값 수정하면 �
 ```
 /api/daily/rank
 
-key 의미
+key 총 4개 !!
 marcap : 시총
 changes_incr : 떡상
 changes_redu : 떡락
@@ -64,7 +64,10 @@ volume : 거래량
 #### 4. 추천종목 (최대 12개 랜덤)
 ```
 /api/daily/recom
+
+code : { name, close, changes_ratio }
 ```
+![image](https://user-images.githubusercontent.com/76652908/165926929-2ad61bf7-3463-4317-bb86-79826feb51ac.png)
 
 #### 5. 종목 검색
 ```
