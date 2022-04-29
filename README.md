@@ -40,26 +40,26 @@ MYSQL로 진행해야 하며 DB명 바꿀 때 db = "capstone" 값 수정하면 �
 ```
 /api/allcorps : 상장된 "기업" 
 /api/allkrx : 상장된 기업 + 선물
-
-return :  { code : name }
 ```
 ![image](https://user-images.githubusercontent.com/76652908/165925808-8433ecb0-486a-4a6f-9012-4d7c189c62d1.png)
 
 #### 2. KOSPI, NASDAQ, S&P500 종합 지수
 ```
-/api/daily/total
-
-return : { 날짜 : [
-             { type, close, open, high, open, low, volume, changes }
-             ]
-         }         
+/api/daily/total        
 ```
 ![image](https://user-images.githubusercontent.com/76652908/165926362-c2f39f0f-c3d7-495b-bcff-14c015a19b1f.png)
 
-#### 3. 시총, 변동률, 거래대금 TOP 10
+#### 3. 시총, 변동률(떡상, 떡락), 거래대금 TOP 10
 ```
 /api/daily/rank
+
+key 의미
+marcap : 시총
+changes_incr : 떡상
+changes_redu : 떡락
+volume : 거래량
 ```
+![image](https://user-images.githubusercontent.com/76652908/165926543-3483bb7c-d32e-4120-9a98-1c34ea6cc946.png)
 
 #### 4. 추천종목 (최대 12개 랜덤)
 ```
