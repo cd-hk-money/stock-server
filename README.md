@@ -12,7 +12,7 @@ pip install fastapi
 pip install uvicorn[standard]
 ```
 
-### 2. testserver.py 터미널에서 서버 실행
+### 2. 터미널에서 서버 실행
 ```
 uvicorn testserver:app --reload --host=주소 --port=포트번호
 ```
