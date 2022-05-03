@@ -78,4 +78,8 @@ code : { name, close, changes_ratio }
 /api/stock/statement/{name} : 최근 4분기 재무제표 데이터
 /api/stock/indicator/{name} : 최근 4분기 보조지표(EPS, BPS, ROE) 데이터 + 가장 최근 per, pbr 인데 ... 현재는 0 
 /api/stock/statement/{type}/{name} : 영업이익, 매출액 그래프용 5년치 데이터 type = ebitda, revenue 둘 중 하나. 
+```
+기본정보 (Key, value)
+
+![image](https://user-images.githubusercontent.com/76652908/166405858-5ad17514-bbaa-4a7a-a30f-877f34bfd6a0.png)
 
