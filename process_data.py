@@ -29,7 +29,27 @@ def findtop(type, datas):
     dic = {type: []}
     for data in datas:
         data = list(data)
-        dic[type].append(data)
+
+        date = data[0]
+        code = data[1]
+        name = data[2]
+        close = data[4]
+        changes = data[5]
+        changes_ratio = data[6]
+        open = data[7]
+        high = data[8]
+        low = data[9]
+        volume = data[10]
+        amount = data[11]
+        marcap = data[12]
+        stocks = data[13]
+        per = data[14]
+        pbr = data[15]
+        #psr은 추가 예정
+
+        dic[type].append({"date" : date, "code": code, "name" : name, "close" : close, "changes" : changes,
+        "changes_ratio" : changes_ratio, "open" : open, "high" : high, "low" : low, "volume" : volume, "amount" : amount,
+        "marcap" : marcap, "stocks" : stocks, "per" : per, "pbr" : pbr})
     
     return dic
 

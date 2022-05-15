@@ -64,28 +64,28 @@ def find_daily_total():
 
 def daily_rank():
     #시총 TOP10
-    sql = "select code, name, close, marcap from stock_marcap where date = %s ORDER BY marcap DESC limit 50" 
+    sql = "select * from stock_marcap where date = %s ORDER BY marcap DESC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
     dict1 = process_data.findtop("marcap", data)
 
     #떡상 TOP10
-    sql = "select code, name, close, changes_ratio from stock_marcap where date = %s ORDER BY changes_ratio DESC limit 50" 
+    sql = "select * from stock_marcap where date = %s ORDER BY changes_ratio DESC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
     dict2 = process_data.findtop("change_incr", data)
 
     #떡락 TOP 10
-    sql = "select code, name, close, changes_ratio from stock_marcap where date = %s ORDER BY changes_ratio ASC limit 50" 
+    sql = "select * from stock_marcap where date = %s ORDER BY changes_ratio ASC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
     dict3 = process_data.findtop("change_redu", data)
 
     #거래량 TOP 10
-    sql = "select code, name, close, volume from stock_marcap where date = %s ORDER BY volume DESC limit 50" 
+    sql = "select * from stock_marcap where date = %s ORDER BY volume DESC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 

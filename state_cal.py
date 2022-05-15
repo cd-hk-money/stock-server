@@ -253,7 +253,8 @@ def psr_statement():
         
     conn.commit()
     conn.close()
-
+    
+psr_statement()
 # stock_marcap 테이블 + stock_indicator_day 테이블
 # 무식한 ver
 def union_table():
