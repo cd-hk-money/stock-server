@@ -64,28 +64,28 @@ def find_daily_total():
 
 def daily_rank():
     #시총 TOP10
-    sql = "select code, name, close, marcap from stock_marcap where date = %s ORDER BY marcap DESC limit 10" 
+    sql = "select code, name, close, marcap from stock_marcap where date = %s ORDER BY marcap DESC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
     dict1 = process_data.findtop("marcap", data)
 
     #떡상 TOP10
-    sql = "select code, name, close, changes_ratio from stock_marcap where date = %s ORDER BY changes_ratio DESC limit 10" 
+    sql = "select code, name, close, changes_ratio from stock_marcap where date = %s ORDER BY changes_ratio DESC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
     dict2 = process_data.findtop("change_incr", data)
 
     #떡락 TOP 10
-    sql = "select code, name, close, changes_ratio from stock_marcap where date = %s ORDER BY changes_ratio ASC limit 10" 
+    sql = "select code, name, close, changes_ratio from stock_marcap where date = %s ORDER BY changes_ratio ASC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
     dict3 = process_data.findtop("change_redu", data)
 
     #거래량 TOP 10
-    sql = "select code, name, close, volume from stock_marcap where date = %s ORDER BY volume DESC limit 10" 
+    sql = "select code, name, close, volume from stock_marcap where date = %s ORDER BY volume DESC limit 50" 
     curs.execute(sql, last_day)
     data = curs.fetchall()
 
@@ -115,7 +115,10 @@ def find_recommand():
     return dict
 
 def stock_info(name):
-    sql = "select * from stock_marcap where name = %s ORDER BY date DESC limit 1"
+    sql = "select sm.*, ck.sector from stock_marcap sm inner join corp_krx as ck \
+        on sm.name = ck.name \
+        where sm.name = %s ORDER BY date DESC limit 1"
+        
     curs.execute(sql, name)
     data = curs.fetchall()
     
@@ -141,10 +144,15 @@ def graph2weeks(name):
 
         return "잘못된 기업명입니다~"
     
-    res = process_data.data2grahp(data)
-
     conn.commit()
-
+    
+    res = {}
+    res1 = process_data.data2graph(data)
+    res2 = process_data.data2graph2(data)
+    
+    res.update(res1)
+    res.update(res2)
+    
     return res
 
 def graph5year(name):
@@ -157,10 +165,15 @@ def graph5year(name):
     
         return "잘못된 기업명입니다~"
 
-    res = process_data.data2grahp(data)
-
     conn.commit()
-
+    
+    res = {}
+    res1 = process_data.data2graph(data)
+    res2 = process_data.data2graph2(data)
+    
+    res.update(res1)
+    res.update(res2)
+    
     return res
 
 def graph_detail(name, start, end):
@@ -173,10 +186,14 @@ def graph_detail(name, start, end):
     
         return "잘못된 기업명 or 해당 날짜 데이터가 없어요~"
 
-    res = process_data.data2grahp(data)
-
     conn.commit()
+    
+    res = {}
+    res1 = process_data.data2graph(data)    
+    res2 = process_data.data2graph2(data)
 
+    res.update(res1)
+    res.update(res2)
     return res
 
 def type2graph(type, name):
@@ -204,10 +221,15 @@ def type2graph(type, name):
     
         return "재무제표가 없어요~"
     
-    res = process_data.data2grahp(data)
-
     conn.commit()
-
+    
+    res = {}
+    res1 = process_data.data2graph(data)
+    res2 = process_data.data2graph3(data, type)
+    
+    res.update(res1)
+    res.update(res2)
+    
     return res
 
 def find_statement(name):

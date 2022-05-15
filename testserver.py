@@ -22,13 +22,13 @@ async def all_code():
     data = testcontroller.match_krx()
     return data
 
-#KOSPI, NASDAQ, S&P500 종합 지수
+#KOSPI, NASDAQ, S&P500 종합 지수 + US 채권 수익률 
 @app.get("/api/daily/total")
 async def daily_total():
     data = testcontroller.find_daily_total()
     return data
 
-#상위종목 시총, 변동률, 거래대금 TOP 10
+#상위종목 시총, 변동률, 거래대금 TOP 50
 @app.get("/api/daily/rank")
 async def daily_rank():
     data = testcontroller.daily_rank()
@@ -56,9 +56,13 @@ async def stockinfo(name: str):
         "open": data[7],
         "high": data[8],
         "low": data[9],
-        "amount": data[10],
-        "marcap": data[11],
-        "stocks": data[12]
+        "volume": data[10],
+        "amount": data[11],
+        "marcap": data[12],
+        "stocks": data[13],
+        "per": data[14],
+        "pbr": data[15],
+        "sector": data[16]
     })
 
 #5년 주가 데이터 (소요시간 7초)
@@ -96,3 +100,5 @@ async def stock_statement(name: str):
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
     return res
+
+
