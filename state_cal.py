@@ -9,6 +9,7 @@ conn.commit()
 # 사용 할 자료
 today = datetime.today().strftime("%Y-%m-%d")
 temp_list = []  
+code_list = [] # 기업 코드 리스트
 
 # 통합.csv 를 각각 분기별 데이터로 만들기
 # 2021 반기보고서 -> 2021.09.30 2분기(연결X) 의 값
@@ -77,28 +78,19 @@ def std_day():
     data = curs.fetchall()
 
     return data[0][0]
-code_list = []
-# 1.Code 리스트 만들자
+
+# 상장된 기업의 코드 리스트 생성
 def find_code():
-    f = open("statements.csv", 'r', encoding="UTF-8")
-    csvReader = csv.reader(f)
+    sql = "select code from corp_krx"
+    curs.execute(sql)
+    temp = list(curs.fetchall())
 
-    for row in csvReader:
-        if row[1] == "종목코드":
-            continue
+    for code in temp:
+        code_list.append(code[0])
 
-        code = row[1]
-        
-        if code in code_list:
-            continue
-        else:
-            code_list.append(code)
-    
-    f.close()
+find_code()
 
-find_code() 
-
-# 2. code로 재무제표 기반 EPS, BPS, ROE 계산
+# code로 재무제표 기반 EPS, BPS, ROE 계산
 def cal_statement():
     cnt = 0
     last_day = std_day()
@@ -161,7 +153,7 @@ def cal_statement():
     conn.commit()
     conn.close()
 
-# 3. EPS, BPS 로 PER, PBR 계산
+# PER, PBR 계산
 def every_statement():
     start = "2020-01-01"
     end = "2021-12-31"
@@ -262,7 +254,7 @@ def psr_statement():
     conn.commit()
     conn.close()
 
-# 4. stock_marcap 테이블 + stock_indicator_day 테이블
+# stock_marcap 테이블 + stock_indicator_day 테이블
 # 무식한 ver
 def union_table():
     sql = "SELECT distinct code FROM stock_marcap_old"

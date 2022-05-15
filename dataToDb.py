@@ -27,10 +27,8 @@ last_day = (datetime.strptime(state_cal.std_day(), "%Y-%m-%d") + timedelta(days=
 
 
 def every_do():
-    # path = "https://github.com/FinanceData/marcap.git"
-    # os.system(f'git pull origin master')
-    # os.system(f'cd marcap')
-    # os.system(f'git pull origin master')
+    os.system(f'cd marcap')
+    os.system(f'git pull origin master') 
 
     df = marcap_data(last_day, today)
     
@@ -162,7 +160,7 @@ def marcap_list():
     f.close()
     conn.close()    
 
-# 5년전 ~ 현재의 DB & 자동화 대상
+# 일일 주가 데이터 DB push
 def every_marcap(): 
     f = open("marcap_" + today.strftime('%Y-%m-%d') + ".csv", 'r', encoding="UTF-8")
     csvReader = csv.reader(f)
@@ -377,6 +375,29 @@ def us_bond():
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
         curs.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US10YT OK")
+    
+    conn.commit()
+    conn.close()
+
+# USD/KRW 원화 (환율) 세팅용 (1회)
+def usd_krw():
+    df = fdr.DataReader('USD/KRW', '2017-01-01')
+    df.reset_index(drop = False, inplace=True)
+    df = df.values.tolist()
+    t =  "USD/KRW"
+    for row in df:
+        date = row[0].strftime("%Y-%m-%d")
+        op = row[1]
+        close = row[2]
+        high = row[3]
+        low = row[4]
+        changes = row[5]
+
+        volume = 0 # 환율은 거래량이 없다
+        
+        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        print(date + " OK")
     
     conn.commit()
     conn.close()
