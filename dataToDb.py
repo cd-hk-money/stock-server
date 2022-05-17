@@ -25,7 +25,6 @@ today = datetime.now()
 std_day = today - relativedelta(years=5)  
 last_day = (datetime.strptime(state_cal.std_day(), "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
 
-
 def every_do():
     os.system(f'cd marcap')
     os.system(f'git pull origin master') 
@@ -39,7 +38,7 @@ def every_do():
         df.to_csv("marcap_" + today.strftime("%Y-%m-%d") + ".csv", mode="w")
         print("today data ready")
 
-schedule.every().day.at("07:00").do(every_do)
+# schedule.every().day.at("07:00").do(every_do)
 #-----------------------------------------------------------------------------------#
 
 # 재무제표
@@ -313,6 +312,25 @@ def daily_total():
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
         curs.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US10YT OK")
+    
+    t = "USD/KRW"
+    df = fdr.DataReader("USD/KRW", last_total)
+    df.reset_index(drop = False, inplace=True)
+    df = df.values.tolist()
+    
+    for row in df:
+        date = row[0].strftime("%Y-%m-%d")
+        close = row[1]
+        op = row[2]
+        high = row[3]
+        low = row[4]
+        changes = row[5]
+        
+        volume = 0 #환율은 거래량이 없다
+        
+        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        print(date + " USD/KRW OK")
     
     conn.commit()
     conn.close()
