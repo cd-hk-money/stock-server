@@ -36,7 +36,8 @@ async def all_code():
     data = testcontroller.match_krx()
     return data
 
-#KOSPI, NASDAQ, S&P500 종합 지수 + US 채권 수익률 
+
+#KOSPI, NASDAQ, S&P500 종합 지수, US 채권 수익률, 환율(USD/KRW)
 @app.get("/daily/trend")
 async def daily_total():
     data = testcontroller.find_daily_total()
@@ -78,6 +79,12 @@ async def stockinfo(name: str):
         "pbr": data[15],
         "sector": data[16]
     })
+    
+#2주 주가 데이터 (시간 벌기용)
+@app.get("/stock/{name}/price")
+async def stockgraph(name: str):
+    res = testcontroller.graph2weeks(name)
+    return res
 
 #5년 주가 데이터 (소요시간 7초)
 @app.get("/stock/{name}/years-price")
@@ -90,6 +97,7 @@ async def detailgraph(name: str, flag: str):
 async def stockgraph(name: str):
     res = testcontroller.graph2weeks(name)
     return res
+
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{name}/price/{start}/{end}")
@@ -108,7 +116,7 @@ async def ebitda_graph(type:str, name: str):
 async def stock_statement(name: str):
     res = testcontroller.find_statement(name)
     return res
-
+    
 #기업의 보조지표 EPS, BPS, ROE (최근 4분기)
 @app.get("/stock/{name}/indicator")
 async def stock_indicator(name:str):
