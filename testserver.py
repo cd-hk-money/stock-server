@@ -31,7 +31,7 @@ async def all_code():
     return data
     
 #자동완성 {코드 : 기업} (선물 O)
-@app.get("/krx")
+@app.get("/alkrx")
 async def all_code():
     data = testcontroller.match_krx()
     return data

@@ -13,7 +13,7 @@ code_list = [] # 기업 코드 리스트
 
 # 통합.csv 를 각각 분기별 데이터로 만들기
 # 2021 반기보고서 -> 2021.09.30 2분기(연결X) 의 값
-def temp():
+def report_cal():
     for code in code_list:
         for year in range(2015, 2022):
             sql = "select * from stock_statements_origin where code = %s and date like %s"
@@ -254,7 +254,6 @@ def psr_statement():
     conn.commit()
     conn.close()
     
-psr_statement()
 # stock_marcap 테이블 + stock_indicator_day 테이블
 # 무식한 ver
 def union_table():
