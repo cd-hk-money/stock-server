@@ -31,7 +31,7 @@ async def all_code():
     return data
     
 #자동완성 {코드 : 기업} (선물 O)
-@app.get("/alkrx")
+@app.get("/krx")
 async def all_code():
     data = testcontroller.match_krx()
     return data
@@ -97,7 +97,6 @@ async def detailgraph(name: str, flag: str):
 async def stockgraph(name: str):
     res = testcontroller.graph2weeks(name)
     return res
-
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{name}/price/{start}/{end}")
