@@ -19,21 +19,25 @@ async def signup():
 async def login():
     return "login"
 
+@app.get("/logout")
+async def logout():
+    return "logout"
+
 #------------------------하위 주가 관련 API---------------------#
 #자동완성 {코드 : 기업} (선물 X)
-@app.get("/allcorps")
+@app.get("/krx-corps")
 async def all_code():
     data = testcontroller.match_corp()
     return data
     
 #자동완성 {코드 : 기업} (선물 O)
-@app.get("/allkrx")
+@app.get("/krx")
 async def all_code():
     data = testcontroller.match_krx()
     return data
 
 #KOSPI, NASDAQ, S&P500 종합 지수 + US 채권 수익률 
-@app.get("/daily/total")
+@app.get("/daily/trend")
 async def daily_total():
     data = testcontroller.find_daily_total()
     return data
@@ -45,7 +49,7 @@ async def daily_rank():
     return data
 
 #추천종목 (현재는 랜덤으로 최대 12개)
-@app.get("/daily/recom")
+@app.get("/daily/recommand")
 async def daily_recommand():
     data = testcontroller.find_recommand()
     return data
@@ -76,37 +80,37 @@ async def stockinfo(name: str):
     })
 
 #5년 주가 데이터 (소요시간 7초)
-@app.get("/stock/graph/detail/{name}")
+@app.get("/stock/{name}/years-price")
 async def detailgraph(name: str, flag: str):
     res = testcontroller.graph5year(name)
     return res
 
 #2주 주가 데이터 (시간 벌기용)
-@app.get("/stock/graph/{name}")
+@app.get("/stock/{name}/price")
 async def stockgraph(name: str):
     res = testcontroller.graph2weeks(name)
     return res
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
-@app.get("/stock/graph/{name}/{start}/{end}")
+@app.get("/stock/{name}/price/{start}/{end}")
 async def custom_graph(name:str, start:str, end:str):
     res = testcontroller.graph_detail(name, start, end)
     return res
 
 #영업이익, 매출액 그래프 type 으로 구분
-@app.get("/stock/statement/{type}/{name}")
+@app.get("/stock/{name}/statement/{type}")
 async def ebitda_graph(type:str, name: str):
     res = testcontroller.type2graph(type, name)
     return res
     
 #기업의 재무제표 (최근 4분기)
-@app.get("/stock/statement/{name}")
+@app.get("/stock/{name}/statement")
 async def stock_statement(name: str):
     res = testcontroller.find_statement(name)
     return res
 
 #기업의 보조지표 EPS, BPS, ROE (최근 4분기)
-@app.get("/stock/indicator/{name}")
+@app.get("/stock/{name}/indicator")
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
     return res
