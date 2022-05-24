@@ -154,7 +154,7 @@ def cal_statement():
     conn.close()
 
 # PER, PBR 계산
-def every_statement():
+def pebr_statement():
     start = "2020-01-01"
     end = "2021-12-31"
 
@@ -204,7 +204,61 @@ def every_statement():
 
     conn.commit()
     conn.close()
+
+def every_pebr():
+    start = "2021-10-01"
+    end = "2022-05-24"
     
+    for code in code_list:
+        # 마지막 재무제표에서 EPS, BPS 뽑아오기 
+        sql = "Select eps, bps from stock_indicator where code = %s and date >= '2021-09'"
+        curs.execute(sql, code)
+        temp = curs.fetchall()
+        
+        if len(temp) == 0:
+            print(code + " 이 기업은 재무제표가 없습니다 ...")
+            eps = 0
+            bps = 0
+        else:
+            eps = temp[0][0]
+            bps = temp[0][1]
+
+        # 마지막 재무제표에서 매출액 뽑아오기
+        sql = "Select revenue from stock_statements where code = %s and date = '2021-09'"
+        curs.execute(sql, code)
+        temp = curs.fetchall()
+        
+        if len(temp) == 0:
+            print(code + " 이 기업의 마지막 재무제표는 매출액이 없어요")
+            rev = 0
+        else:
+            rev = temp[0][0]
+
+        # 종가, 시총 뽑아오기
+        sql = "Select date, close, marcap from stock_marcap where code = %s and date between %s and %s"
+        curs.execute(sql, (code, start, end))
+        temp = curs.fetchall()
+        temp = list(temp)
+        
+        # PER, PBR, PSR 한번에 우겨넣기
+        if len(temp) == 0:
+            print(code + " 거래중지가 된 기업입니다.")
+        else:
+            for date, close, marcap in temp:
+                per = close / eps if eps != 0 else 0
+                pbr = close / bps if bps != 0 else 0
+                psr = marcap/ rev if rev != 0 else 0
+                sql = "Update stock_marcap SET per = %s, pbr = %s, psr = %s where code = %s and date = %s"
+                curs.execute(sql, (per, pbr, psr, code, date))
+                
+                print(code + " " + date + " OK")
+    
+    conn.commit()
+    conn.close()    
+        
+every_pebr()
+        
+
 # PSR을 따로 구하자
 def psr_statement():
     start = "2020-01-01"
