@@ -21,7 +21,7 @@ async def login():
 
 @app.get("/logout")
 async def logout():
-    return ""
+    return "logout"
 
 #------------------------하위 주가 관련 API---------------------#
 #자동완성 {코드 : 기업} (선물 X)
@@ -35,6 +35,7 @@ async def all_code():
 async def all_code():
     data = testcontroller.match_krx()
     return data
+
 
 #KOSPI, NASDAQ, S&P500 종합 지수, US 채권 수익률, 환율(USD/KRW)
 @app.get("/daily/trend")
@@ -87,16 +88,15 @@ async def stockgraph(name: str):
 
 #5년 주가 데이터 (소요시간 7초)
 @app.get("/stock/{name}/years-price")
-async def detailgraph(name: str):
+async def detailgraph(name: str, flag: str):
     res = testcontroller.graph5year(name)
     return res
 
 #5년 거래량 데이터 (소요시간 7초)
 @app.get("/stock/{name}/years-volume")
-async def detailgraph(name: str):
+async def voulumegraph(name: str):
     res = testcontroller.graphvolume5year(name)
     return res
-
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{name}/price/{start}/{end}")
