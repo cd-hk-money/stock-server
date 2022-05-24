@@ -23,6 +23,38 @@ async def login():
 async def logout():
     return "logout"
 
+# 관심종목 관련 API 경로
+
+# 하나의 회원에게서 관심그룹 + 관심종목 가져오기
+@app.get("/member/{id}/group")
+async def getgroup():
+    return "group"
+
+# 관심그룹 생성
+@app.post("/member/{id}/group")
+async def creatGroup():
+    return "update group"
+
+# 관심그룹의 그룹명 수정
+@app.post("/member/{id}/group/{group_id}") # body에 name을 실어줌
+async def update_GroupName():
+    return "update group"
+
+# 관심"그룹" 의 순서변경
+@app.post("/member/{id}/group/sequence") 
+async def update_Group_Sequence():
+    return "update group"
+
+# 관심종목 추가
+@app.post("/member/{id}/{group_id}/{stock}")
+async def add_GroupStock():
+    return "push stock"
+
+# 관심종목의 순서변경
+@app.post("/member/{id}/{group_id}/sequence")
+async def update_Stock_Sequence():
+    return "change stock sequence"
+
 #------------------------하위 주가 관련 API---------------------#
 #자동완성 {코드 : 기업} (선물 X)
 @app.get("/krx-corps")
@@ -92,18 +124,10 @@ async def detailgraph(name: str, flag: str):
     res = testcontroller.graph5year(name)
     return res
 
-<<<<<<< HEAD
 #5년 거래량 데이터 (소요시간 7초)
 @app.get("/stock/{name}/years-volume")
 async def voulumegraph(name: str):
     res = testcontroller.graphvolume5year(name)
-=======
-#2주 주가 데이터 (시간 벌기용)
-@app.get("/stock/{name}/price")
-async def stockgraph(name: str):
-    res = testcontroller.graph2weeks(name)
->>>>>>> 8e197945628d7257fd3a9f7923d07df210f15e86
-    return res
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{name}/price/{start}/{end}")
@@ -111,25 +135,16 @@ async def custom_graph(name:str, start:str, end:str):
     res = testcontroller.graph_detail(name, start, end)
     return res
 
-<<<<<<< HEAD
 #기업의 재무제표 (최근 4분기)
 @app.get("/stock/{name}/statement")
 async def stock_statement(name: str):
     res = testcontroller.find_statement(name)
     return res
 
-=======
->>>>>>> 8e197945628d7257fd3a9f7923d07df210f15e86
 #영업이익, 매출액 그래프 type 으로 구분
 @app.get("/stock/{name}/statement/{type}")
 async def ebitda_graph(type:str, name: str):
     res = testcontroller.type2graph(type, name)
-    return res
-    
-#기업의 재무제표 (최근 4분기)
-@app.get("/stock/{name}/statement")
-async def stock_statement(name: str):
-    res = testcontroller.find_statement(name)
     return res
     
 #기업의 보조지표 EPS, BPS, ROE (최근 4분기)

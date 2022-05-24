@@ -15,4 +15,4 @@ import pymysql
 # state_cal.union_table()
 
 # 2. 일일 종합 지수 최신화 (KOSPI, NASDAQ, S&P500, US채권)
-dataToDb.daily_total()
+# dataToDb.daily_total()
