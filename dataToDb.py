@@ -256,81 +256,81 @@ def daily_total():
         curs.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " NASDAQ OK")
 
-    t = "US1YT"
-    df = fdr.DataReader("US1YT=X", last_total)
-    df.reset_index(drop = False, inplace=True)
-    df = df.values.tolist()
+    # t = "US1YT"
+    # df = fdr.DataReader("US1YT=X", last_total)
+    # df.reset_index(drop = False, inplace=True)
+    # df = df.values.tolist()
 
-    for row in df:
-        date = row[0].strftime("%Y-%m-%d")
-        close = row[1]
-        op = row[2]
-        high = row[3]
-        low = row[4]
-        changes = row[5]
+    # for row in df:
+    #     date = row[0].strftime("%Y-%m-%d")
+    #     close = row[1]
+    #     op = row[2]
+    #     high = row[3]
+    #     low = row[4]
+    #     changes = row[5]
         
-        volume = 0 #채권은 거래량이 없다
+    #     volume = 0 #채권은 거래량이 없다
         
-        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
-        print(date + " US1YT OK")
+    #     sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+    #     curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+    #     print(date + " US1YT OK")
         
-    t = "US5YT"
-    df = fdr.DataReader("US5YT=X", last_total)
-    df.reset_index(drop = False, inplace=True)
-    df = df.values.tolist()
+    # t = "US5YT"
+    # df = fdr.DataReader("US5YT=X", last_total)
+    # df.reset_index(drop = False, inplace=True)
+    # df = df.values.tolist()
     
-    for row in df:
-        date = row[0].strftime("%Y-%m-%d")
-        close = row[1]
-        op = row[2]
-        high = row[3]
-        low = row[4]
-        changes = row[5]
+    # for row in df:
+    #     date = row[0].strftime("%Y-%m-%d")
+    #     close = row[1]
+    #     op = row[2]
+    #     high = row[3]
+    #     low = row[4]
+    #     changes = row[5]
         
-        volume = 0 #채권은 거래량이 없다
+    #     volume = 0 #채권은 거래량이 없다
         
-        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
-        print(date + " US5YT OK")
+    #     sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+    #     curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+    #     print(date + " US5YT OK")
         
-    t = "US10YT"
-    df = fdr.DataReader("US10YT=X", last_total)
-    df.reset_index(drop = False, inplace=True)
-    df = df.values.tolist()
+    # t = "US10YT"
+    # df = fdr.DataReader("US10YT=X", last_total)
+    # df.reset_index(drop = False, inplace=True)
+    # df = df.values.tolist()
     
-    for row in df:
-        date = row[0].strftime("%Y-%m-%d")
-        close = row[1]
-        op = row[2]
-        high = row[3]
-        low = row[4]
-        changes = row[5]
+    # for row in df:
+    #     date = row[0].strftime("%Y-%m-%d")
+    #     close = row[1]
+    #     op = row[2]
+    #     high = row[3]
+    #     low = row[4]
+    #     changes = row[5]
         
-        volume = 0 #채권은 거래량이 없다
+    #     volume = 0 #채권은 거래량이 없다
         
-        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
-        print(date + " US10YT OK")
+    #     sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+    #     curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+    #     print(date + " US10YT OK")
     
-    t = "USD/KRW"
-    df = fdr.DataReader("USD/KRW", last_total)
-    df.reset_index(drop = False, inplace=True)
-    df = df.values.tolist()
+    # t = "USD/KRW"
+    # df = fdr.DataReader("USD/KRW", last_total)
+    # df.reset_index(drop = False, inplace=True)
+    # df = df.values.tolist()
     
-    for row in df:
-        date = row[0].strftime("%Y-%m-%d")
-        close = row[1]
-        op = row[2]
-        high = row[3]
-        low = row[4]
-        changes = row[5]
+    # for row in df:
+    #     date = row[0].strftime("%Y-%m-%d")
+    #     close = row[1]
+    #     op = row[2]
+    #     high = row[3]
+    #     low = row[4]
+    #     changes = row[5]
         
-        volume = 0 #환율은 거래량이 없다
+    #     volume = 0 #환율은 거래량이 없다
         
-        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
-        print(date + " USD/KRW OK")
+    #     sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+    #     curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+    #     print(date + " USD/KRW OK")
     
     conn.commit()
     conn.close()

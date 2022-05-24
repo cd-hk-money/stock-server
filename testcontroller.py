@@ -176,6 +176,27 @@ def graph5year(name):
     
     return res
 
+def graphvolume5year(name):
+    sql = "select date, volume from stock_marcap where name = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
+    curs.execute(sql, (name, last_day))
+    data = curs.fetchall()
+    
+    if len(data) == 0:
+        conn.commit()
+    
+        return "잘못된 기업명입니다~"
+
+    conn.commit()
+    
+    res = {}
+    res1 = process_data.data2graph(data)
+    res2 = process_data.data2graph2(data)
+    
+    res.update(res1)
+    res.update(res2)
+    
+    return res
+
 def graph_detail(name, start, end):
     sql = "select date, close from stock_marcap where name = %s and date between %s and %s"
     curs.execute(sql, (name, start, end))
@@ -210,9 +231,23 @@ def type2graph(type, name):
     
     if type == "ebitda":
         sql = "select date, ebitda from stock_statements where code = %s"
+    elif type == "asset":
+        sql = "select date, asset from stock_statements where code = %s"
+    elif type == "equity":
+        sql = "select date, equity from stock_statements where code = %s" 
+    elif type == "liability":
+        sql = "select date, liability from stock_statements where code = %s"
+    elif type == "current_asset":
+        sql = "select date, current_asset from stock_statements where code = %s"
+    elif type == "profit":
+        sql = "select date, profit from stock_statements where code = %s"
     elif type == "revenue":
         sql = "select date, revenue from stock_statements where code = %s"
-
+    elif type == "cash":
+        sql = "select date, cash from stock_statements where code = %s"
+    elif type == "gross_margin":
+        sql = sql = "select date, gross_margin from stock_statements where code = %s" 
+        
     curs.execute(sql, code)
     data = curs.fetchall()
 

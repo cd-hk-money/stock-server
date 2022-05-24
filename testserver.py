@@ -25,13 +25,13 @@ async def logout():
 
 #------------------------하위 주가 관련 API---------------------#
 #자동완성 {코드 : 기업} (선물 X)
-@app.get("/allcorps")
+@app.get("/krx-corps")
 async def all_code():
     data = testcontroller.match_corp()
     return data
     
 #자동완성 {코드 : 기업} (선물 O)
-@app.get("/allkrx")
+@app.get("/krx")
 async def all_code():
     data = testcontroller.match_krx()
     return data
@@ -91,6 +91,12 @@ async def detailgraph(name: str):
     res = testcontroller.graph5year(name)
     return res
 
+#5년 거래량 데이터 (소요시간 7초)
+@app.get("/stock/{name}/years-volume")
+async def detailgraph(name: str):
+    res = testcontroller.graphvolume5year(name)
+    return res
+
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{name}/price/{start}/{end}")
@@ -99,7 +105,7 @@ async def custom_graph(name:str, start:str, end:str):
     return res
 
 #기업의 재무제표 (최근 4분기)
-@app.get("/stock/statement/{name}")
+@app.get("/stock/{name}/statement")
 async def stock_statement(name: str):
     res = testcontroller.find_statement(name)
     return res
