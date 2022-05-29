@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+from pandas import date_range
 import pymysql
+import FinanceDataReader as fdr
 import csv
 
 conn = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="1234", db="capstone", charset="utf8")
@@ -154,7 +156,7 @@ def cal_statement():
     conn.close()
 
 # PER, PBR 계산
-def every_statement():
+def pebr_statement():
     start = "2020-01-01"
     end = "2021-12-31"
 
@@ -204,7 +206,58 @@ def every_statement():
 
     conn.commit()
     conn.close()
+
+def every_pebr():
+    start = "2021-10-01"
+    end = "2022-05-24"
     
+    for code in code_list:
+        # 마지막 재무제표에서 EPS, BPS 뽑아오기 
+        sql = "Select eps, bps from stock_indicator where code = %s and date >= '2021-09'"
+        curs.execute(sql, code)
+        temp = curs.fetchall()
+        
+        if len(temp) == 0:
+            print(code + " 이 기업은 재무제표가 없습니다 ...")
+            eps = 0
+            bps = 0
+        else:
+            eps = temp[0][0]
+            bps = temp[0][1]
+
+        # 마지막 재무제표에서 매출액 뽑아오기
+        sql = "Select revenue from stock_statements where code = %s and date = '2021-09'"
+        curs.execute(sql, code)
+        temp = curs.fetchall()
+        
+        if len(temp) == 0:
+            print(code + " 이 기업의 마지막 재무제표는 매출액이 없어요")
+            rev = 0
+        else:
+            rev = temp[0][0]
+
+        # 종가, 시총 뽑아오기
+        sql = "Select date, close, marcap from stock_marcap where code = %s and date between %s and %s"
+        curs.execute(sql, (code, start, end))
+        temp = curs.fetchall()
+        temp = list(temp)
+        
+        # PER, PBR, PSR 한번에 우겨넣기
+        if len(temp) == 0:
+            print(code + " 거래중지가 된 기업입니다.")
+        else:
+            for date, close, marcap in temp:
+                per = close / eps if eps != 0 else 0
+                pbr = close / bps if bps != 0 else 0
+                psr = marcap/ rev if rev != 0 else 0
+                sql = "Update stock_marcap SET per = %s, pbr = %s, psr = %s where code = %s and date = %s"
+                curs.execute(sql, (per, pbr, psr, code, date))
+                
+                print(code + " " + date + " OK")
+    
+    conn.commit()
+    conn.close()    
+
 # PSR을 따로 구하자
 def psr_statement():
     start = "2020-01-01"
@@ -322,9 +375,58 @@ def total_day():
 
     return data[0][0]
 
+# 업종 평균 PER, PBR, PSR 초회 세팅용
+def test():
+    krx = fdr.StockListing('KRX')
+    temp = krx.drop(['Symbol', 'Market', 'Name', 'Industry', 'ListingDate', 'SettleMonth', 'Representative', 'HomePage', 'Region'], axis=1)
+    temp = temp.groupby('Sector').count()
 
+    sector_list = list(temp.index.values)
 
+    start = datetime.strptime("2020-01-01", "%Y-%m-%d")
+    end = datetime.strptime("2022-05-24", "%Y-%m-%d")
+    # date = std_day()
+    # 161개의 업종을 하나씩 순회
+    for sector in sector_list:
+        data = krx[krx['Sector'] == sector]['Symbol']
+        
+        for date in date_range(start, end):
+            date = datetime.strftime(date, "%Y-%m-%d")
 
+            per, pbr, psr = 0, 0, 0
+            # 업종에 속한 모든 기업을 순회
+            for code in data:
+                
+                # 업종 평균 PER, PBR, PSR 을 구하려면 쿼리문이 이게 최선일까?
+                sql = "select per, pbr, psr from stock_marcap where code = %s and date = %s"
+                curs.execute(sql, (code, date))
+                temp = curs.fetchall()
+                
+                temp = list(temp)
+                if len(temp) == 0:
+                    continue
+                
+                e, b, s = temp[0][0], temp[0][1], temp[0][2]
+                
+                per += e
+                pbr += b
+                psr += s if s != None else 0
+            
+            per /= len(data)
+            pbr /= len(data)
+            psr /= len(data)
+            
+            if per == 0 and pbr == 0 and psr == 0:
+                continue
+            
+            sql = "INSERT INTO stock_sector (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
+            curs.execute(sql, (date, sector, per, pbr, psr))
+            print(sector, date, " OK")
+            
+    conn.commit()
+    conn.close()
+            
+test()
 
 
 

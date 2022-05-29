@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from numpy import double
+from numpy import NaN, double
 import pymysql
 import FinanceDataReader as fdr
 from marcap import marcap_data
@@ -419,3 +419,6 @@ def usd_krw():
     
     conn.commit()
     conn.close()
+
+
+
