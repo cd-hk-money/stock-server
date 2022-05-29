@@ -5,8 +5,9 @@ from starlette.responses import JSONResponse
 
 import pymysql, json, process_data
 
-today = datetime.now().strftime("%Y-%m-%d")
-stdday = (datetime.now() - relativedelta(years=5)).strftime("%Y-%m-%d")
+today = datetime.now().strftime("%Y-%m-%d") # 오늘
+stdday = (datetime.now() - relativedelta(years=5)).strftime("%Y-%m-%d") # 5년전 오늘
+b4year = (datetime.now() - relativedelta(years=1)).strftime("%Y-%m-%d") # 1년전 오늘
 
 conn = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="1234", db="capstone", charset="utf8")
 curs = conn.cursor()
@@ -319,4 +320,18 @@ def find_indicator(name):
 
     conn.commit()
 
+    return res
+
+def sector_pebr(name):
+    sql = "select sector from corp_krx where name = %s"
+    curs.execute(sql, name)
+    data = curs.fetchall()
+
+    sector = data[0][0]
+
+    sql = "select date, sector_per, sector_pbr, sector_psr from stock_sector where sector = %s and date between %s and %s"
+    curs.execute(sql, (sector, b4year, today))
+    datas = curs.fetchall()
+
+    res = process_data.sector2dict(datas)
     return res

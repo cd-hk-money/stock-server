@@ -118,6 +118,12 @@ async def stockgraph(name: str):
     res = testcontroller.graph2weeks(name)
     return res
 
+#해당 기업 업종평균 per, pbr, psr (1년치)
+@app.get("/stock/{name}/sector")
+async def stock_sector_pebr(name:str):
+    res = testcontroller.sector_pebr(name)
+    return res
+
 #5년 주가 데이터 (소요시간 7초)
 @app.get("/stock/{name}/years-price")
 async def detailgraph(name: str, flag: str):
@@ -152,5 +158,3 @@ async def ebitda_graph(type:str, name: str):
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
     return res
-
-

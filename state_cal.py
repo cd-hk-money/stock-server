@@ -208,8 +208,8 @@ def pebr_statement():
     conn.close()
 
 def every_pebr():
-    start = "2021-10-01"
-    end = "2022-05-24"
+    start = "2022-05-24"
+    end = "2022-05-29"
     
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
@@ -376,15 +376,15 @@ def total_day():
     return data[0][0]
 
 # 업종 평균 PER, PBR, PSR 초회 세팅용
-def test():
+def sector_pebr():
     krx = fdr.StockListing('KRX')
     temp = krx.drop(['Symbol', 'Market', 'Name', 'Industry', 'ListingDate', 'SettleMonth', 'Representative', 'HomePage', 'Region'], axis=1)
     temp = temp.groupby('Sector').count()
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2020-01-01", "%Y-%m-%d")
-    end = datetime.strptime("2022-05-24", "%Y-%m-%d")
+    start = datetime.strptime("2022-05-24", "%Y-%m-%d")
+    end = datetime.strptime("2022-05-29", "%Y-%m-%d")
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
@@ -425,8 +425,9 @@ def test():
             
     conn.commit()
     conn.close()
+
+
             
-test()
 
 
 

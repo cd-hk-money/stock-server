@@ -112,3 +112,12 @@ def indi2dict(datas):
         dict[data[1]].append({"type": data[2], "eps": data[3], "bps": data[4], "roe": data[5]})
     
     return dict
+
+# 업종평균 key, value 맞춰주기
+def sector2dict(datas):
+    dict = defaultdict(list)
+    for data in datas:
+        data = list(data)
+
+        dict[data[0]].append({"per": data[1], "pbr": data[2], "psr": data[3]})
+    return dict
