@@ -1,21 +1,26 @@
+from tracemalloc import start
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
 import py_eureka_client.eureka_client as ec
 import uvicorn
-
+import asyncio
+import nest_asyncio
 import testcontroller
 
-app = FastAPI(title="Eureka-Py")
+nest_asyncio.apply()
 
 async def set_eureka():
     my_server_host = "127.0.0.1"
     rest_port = 8050
-    ec.init(eureka_server="http://localhost:8761",
-            app_name="stock_server",
+    ec.init(eureka_server="http://localhost:8761/eureka",
+            app_name="stock-service",
             instance_host=my_server_host,
             instance_port=rest_port)
 
-set_eureka()
+asyncio.run(set_eureka())
+# set_eureka()  
+
+app = FastAPI()
 
 #서버가 잘 붙었나 확인
 @app.get("/")
@@ -171,4 +176,4 @@ async def stock_indicator(name:str):
     return res
 
 if __name__ == '__main__':
-    uvicorn.run(app="stock_server:app", port=8050, reload=True)
+    uvicorn.run(app="stock-service:app", port=8050, reload=True)
