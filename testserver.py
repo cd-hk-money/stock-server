@@ -68,7 +68,6 @@ async def all_code():
     data = testcontroller.match_krx()
     return data
 
-
 #KOSPI, NASDAQ, S&P500 종합 지수, US 채권 수익률, 환율(USD/KRW)
 @app.get("/daily/trend")
 async def daily_total():
@@ -152,5 +151,3 @@ async def ebitda_graph(type:str, name: str):
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
     return res
-
-
