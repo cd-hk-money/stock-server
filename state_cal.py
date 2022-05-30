@@ -425,12 +425,3 @@ def sector_pebr():
             
     conn.commit()
     conn.close()
-
-
-            
-
-
-
-
-
-

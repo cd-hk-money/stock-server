@@ -1,9 +1,21 @@
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
+import py_eureka_client.eureka_client as ec
+import uvicorn
 
 import testcontroller
 
-app = FastAPI()
+app = FastAPI(title="Eureka-Py")
+
+async def set_eureka():
+    my_server_host = "127.0.0.1"
+    rest_port = 8050
+    ec.init(eureka_server="http://localhost:8761",
+            app_name="stock_server",
+            instance_host=my_server_host,
+            instance_port=rest_port)
+
+set_eureka()
 
 #서버가 잘 붙었나 확인
 @app.get("/")
@@ -157,3 +169,6 @@ async def ebitda_graph(type:str, name: str):
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
     return res
+
+if __name__ == '__main__':
+    uvicorn.run(app="stock_server:app", port=8050, reload=True)
