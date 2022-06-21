@@ -15,7 +15,7 @@ import pymysql
 # state_cal.union_table()
 
 # 2. 일일 종합 지수 최신화 (KOSPI, NASDAQ, S&P500, US채권)
-dataToDb.daily_total()
+# dataToDb.daily_total()
 
 # 3. 매일 갱신해야 하는 메소드지만 아직 불안정한 것들
 # state_cal.every_pebr() # 오늘날짜까지 per, pbr, psr update

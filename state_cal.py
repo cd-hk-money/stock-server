@@ -425,3 +425,43 @@ def sector_pebr():
             
     conn.commit()
     conn.close()
+
+# EPS 증가율 계산
+def cal_epsRate():
+    for code in code_list:
+        sql = "select date, eps from stock_indicator where code = %s"
+        curs.execute(sql, code)
+        datas = list(curs.fetchall())
+        
+        for i in range(1, len(datas)):
+            if datas[i][1] == 0 or datas[i-1][1] == 0:
+                print(code + " EPS is zero")
+                continue
+            eps_rate = round(((datas[i][1] - datas[i-1][1]) / datas[i-1][1]) * 100, 1)
+            date = datas[i][0]
+            sql = "UPDATE stock_indicator SET eps_increase = %s where code = %s and date = %s"
+            curs.execute(sql, (eps_rate, code, date))
+
+        print(code + " is OK")
+    
+    conn.commit()
+    conn.close()
+
+# PEGR 계산
+def cal_pegr():
+    for code in code_list:
+        sql = "select date, eps_increase from stock_indicator where code = %s"    
+        curs.execute(sql, code)
+        datas = list(curs.fetchall())[1:]
+        
+        if len(datas) == 0:
+            print("재무제표가 없는 기업입니다")
+            break
+        
+        print(datas)
+
+    return
+
+cal_pegr()
+        
+                 
