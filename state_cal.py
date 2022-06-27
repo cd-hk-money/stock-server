@@ -152,64 +152,53 @@ def cal_statement():
             curs.execute(sql, (code, datas[i][1], datas[i][2], eps, bps, roe))
             print(code + " " + str(cnt) + " OK")
         cnt += 1
-    conn.commit()
+
     conn.close()
 
 # PER, PBR 계산
 def pebr_statement():
-    start = "2020-01-01"
-    end = "2021-12-31"
-
     for code in code_list:
-        
-        sql = "Select * from stock_indicator_temp where code = %s and date >= '2019-01'"
+        sql = "Select date, eps, bps from stock_indicator where code = %s"
         curs.execute(sql, code)
-        temp = curs.fetchall()
+        indi = list(curs.fetchall())
         
-        if len(temp) == 0:
+        if len(indi) == 0:
             # 값이 안 긁히면 거래정지 or 상장폐지
             print(code + " 이 기업은 재무제표가 없어요 ㅠㅠ")  
             continue
+    
+        for i in range(3, len(indi)):
+            start = indi[i-1][0] + "-01"
+            end = indi[i][0] + "-31"     
+            sql = "Select date, close, marcap from stock_marcap where code = %s and date between %s and %s"
         
-        idc = []
-        for data in temp:
-            idc.append(list(data))
+            curs.execute(sql, (code, start, end))
+            marcaps = list(curs.fetchall())
         
-        sql = "Select sm.date, sm.close from stock_marcap as sm where code = %s and date between %s and %s"
-        curs.execute(sql, (code, start, end))
-        temp = curs.fetchall()
-        
-        marc = []
-        for data in temp:
-            marc.append(list(data))
-
-        cnt = 0
-        for i in range(3, len(idc)):
-            eps = idc[i][3] + idc[i-1][3] + idc[i-2][3] + idc[i-3][3]
-            bps = idc[i][4]
+            #계산에 사용할 eps, bps
+            eps = indi[i][1] + indi[i-1][1] + indi[i-2][1] + indi[i-3][1]
+            bps = indi[i][2]
             
-            idx = cnt
-            for j in range(idx, len(marc)):
-                if eps == 0 or bps == 0:
-                    continue
+            if eps == 0 or bps == 0:
+                continue
                 
-                per = round(marc[j][1] / eps, 2)
-                pbr = round(marc[j][1] / bps, 2)
+            for date, close, marcap in marcaps:
+                per = round(close / eps, 1)
+                pbr = round(close / bps, 1)
 
-                if marc[j][0][:7] > idc[i][1]:
-                    break
-                else:
-                    sql = "UPDATE stock_marcap SET per = %s, pbr = %s where code = %s and date = %s"                        
-                    curs.execute(sql, (per, pbr, code, marc[j][0]))
-                    print(code + " " + marc[j][0] + " UPDATE OK")
-                    cnt += 1 
+                sql = "UPDATE stock_marcap SET per = %s, pbr = %s where code = %s and date = %s"                        
+                curs.execute(sql, (per, pbr, code, date))
+                print(code + " " + date + " UPDATE OK")
 
     conn.commit()
     conn.close()
 
+pebr_statement()
+
+# PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-05-24"
-    end = "2022-05-29"
+    start = "2020-01-01"
+    end = "2021-09-31"
     
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
@@ -256,9 +245,9 @@ def every_pebr():
                 print(code + " " + date + " OK")
     
     conn.commit()
-    conn.close()    
+    conn.close()
 
-# PSR을 따로 구하자
+# PSR 계산
 def psr_statement():
     start = "2020-01-01"
     end = "2021-09-30"
@@ -456,12 +445,34 @@ def cal_pegr():
         
         if len(datas) == 0:
             print("재무제표가 없는 기업입니다")
-            break
-        
-        print(datas)
+            continue
+            
+        for data in datas:
+            date = data[0] + "-31"
+            sql = "select per from stock_marcap where code = %s and date <= %s ORDER BY date DESC limit 1"
 
-    return
+            curs.execute(sql, (code, date))
+            temp = list(curs.fetchall())
 
-cal_pegr()
+            if len(temp) == 0:
+                print("per이 없어용")
+                continue
+
+            per = temp[0][0]
+
+            if per == 0 or data[1] == 0:
+                print("zero can't division")
+                continue
+
+            pegr = round(per / data[1], 1)
+
+            sql = "UPDATE stock_indicator SET pegr = %s where code = %s and date = %s"
+            curs.execute(sql, (pegr, code, data[0]))
+            
+        print(code + " is OK")
+
+    conn.commit()
+    conn.close()
+
         
                  
