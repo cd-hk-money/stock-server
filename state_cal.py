@@ -111,8 +111,8 @@ def cal_statement():
             total_stock = sum(data[0] for data in datas)
     
         # 임시 쿼리문
-        sql = "SELECT ss.code, ss.date, ss.type, ss.equity, ss.equity_non, ss.profit, ss.profit_non \
-                from stock_statements as ss where ss.code = %s"
+        sql = "SELECT code, date, type, equity, equity_non, profit, profit_non \
+                from stock_statements where code = %s"
         
         curs.execute(sql, code)
         temp = curs.fetchall()
@@ -142,18 +142,20 @@ def cal_statement():
 
             # ROE : 당기순이익(연결) // (자본총계(당기) + 자본총계(전기)) / 2 X 100
             if equity == 0 and equity_prev == 0:
-                pass
+                roe = 0
             else:
                 roe = round((total_profit / ((equity + equity_prev) // 2)) * 100, 2)
             
-            sql = "INSERT INTO stock_indicator_temp (code, date, type, eps, bps, roe) \
+            sql = "INSERT IGNORE INTO stock_indicator (code, date, type, eps, bps, roe) \
                 values (%s, %s, %s, %s, %s, %s)"
 
             curs.execute(sql, (code, datas[i][1], datas[i][2], eps, bps, roe))
             print(code + " " + str(cnt) + " OK")
         cnt += 1
 
+    conn.commit()
     conn.close()
+
 
 # PER, PBR 계산
 def pebr_statement():
@@ -192,8 +194,6 @@ def pebr_statement():
 
     conn.commit()
     conn.close()
-
-pebr_statement()
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
@@ -296,7 +296,7 @@ def psr_statement():
     conn.commit()
     conn.close()
     
-# stock_marcap 테이블 + stock_indicator_day 테이블
+# stock_marcap 테이블
 # 무식한 ver
 def union_table():
     sql = "SELECT distinct code FROM stock_marcap_old"
@@ -322,10 +322,6 @@ def union_table():
             if len(temp) == 0: 
                 print("주말 or 자연재해") 
                 continue
-            
-            sql = "SELECT s.per, s.pbr from stock_indicator_day as s where code = %s and date = %s"
-            curs.execute(sql, (code, date))
-            temp2 = curs.fetchall()
 
             name = temp[0][2]
             market = temp[0][3]
@@ -340,16 +336,15 @@ def union_table():
             marcap = temp[0][12]
             stocks = temp[0][13]
 
-            if len(temp2) == 0:
-                per, pbr = 0, 0
-            else:
-                per, pbr = temp2[0][0], temp2[0][1]
+
+            per, pbr, psr = 0, 0, 0
+
 
             sql = "INSERT INTO stock_marcap (date, code, name, market, close, changes, changes_ratio, open,\
-                 high, low, volume, amount, marcap, stocks, per, pbr)\
-                     values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                 high, low, volume, amount, marcap, stocks, per, pbr, psr)\
+                     values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             
-            curs.execute(sql, (date, code, name, market, close, changes, changes_ratio, open, high, low, volume, amount, marcap, stocks, per, pbr))
+            curs.execute(sql, (date, code, name, market, close, changes, changes_ratio, open, high, low, volume, amount, marcap, stocks, per, pbr, psr))
             print(date + " " + code + " " + str(cnt) + " OK")
         cnt += 1
     conn.commit()
@@ -372,20 +367,18 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-05-24", "%Y-%m-%d")
-    end = datetime.strptime("2022-05-29", "%Y-%m-%d")
+    start = datetime.strptime("2020-01-01", "%Y-%m-%d")
+    end = datetime.strptime("2021-09-30", "%Y-%m-%d")
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
         data = krx[krx['Sector'] == sector]['Symbol']
-        
         for date in date_range(start, end):
             date = datetime.strftime(date, "%Y-%m-%d")
 
             per, pbr, psr = 0, 0, 0
             # 업종에 속한 모든 기업을 순회
             for code in data:
-                
                 # 업종 평균 PER, PBR, PSR 을 구하려면 쿼리문이 이게 최선일까?
                 sql = "select per, pbr, psr from stock_marcap where code = %s and date = %s"
                 curs.execute(sql, (code, date))
@@ -401,6 +394,7 @@ def sector_pebr():
                 pbr += b
                 psr += s if s != None else 0
             
+            
             per /= len(data)
             pbr /= len(data)
             psr /= len(data)
@@ -408,12 +402,14 @@ def sector_pebr():
             if per == 0 and pbr == 0 and psr == 0:
                 continue
             
-            sql = "INSERT INTO stock_sector (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
-            curs.execute(sql, (date, sector, per, pbr, psr))
+            sql = "UPDATE stock_sector SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
+            curs.execute(sql, (per, pbr, psr, date, sector))
             print(sector, date, " OK")
             
     conn.commit()
     conn.close()
+
+sector_pebr()
 
 # EPS 증가율 계산
 def cal_epsRate():
@@ -474,5 +470,5 @@ def cal_pegr():
     conn.commit()
     conn.close()
 
-        
+
                  
