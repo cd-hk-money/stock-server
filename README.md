@@ -1,4 +1,4 @@
-# TEST SERVER 가이드라인
+# STOCK SERVER 가이드라인
 
 ## 파일별 용도
 1. testserver.py = api 매핑
