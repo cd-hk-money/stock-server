@@ -7,19 +7,20 @@ import asyncio
 import nest_asyncio
 import testcontroller
 
-nest_asyncio.apply()
+##--------------- Eureka 설정 --------------##
+# nest_asyncio.apply()
 
-async def set_eureka():
-    my_server_host = "127.0.0.1"
-    rest_port = 8050
-    ec.init(eureka_server="http://localhost:8761/eureka",
-            app_name="stock-service",
-            instance_host=my_server_host,
-            instance_port=rest_port)
+# async def set_eureka():
+#     my_server_host = "127.0.0.1"
+#     rest_port = 8050
+#     ec.init(eureka_server="http://localhost:8761/eureka",
+#             app_name="stock-service",
+#             instance_host=my_server_host,
+#             instance_port=rest_port)
 
-asyncio.run(set_eureka())
+# asyncio.run(set_eureka())
 # set_eureka()  
-
+##------------------------------------------##
 app = FastAPI()
 
 #서버가 잘 붙었나 확인
@@ -173,6 +174,12 @@ async def ebitda_graph(type:str, name: str):
 @app.get("/stock/{name}/indicator")
 async def stock_indicator(name:str):
     res = testcontroller.find_indicator(name)
+    return res
+
+#기업의 적정주가
+@app.get("/stock/{name}/evaluation")
+async def stock_evaluation(name):
+    res = testcontroller.get_evalutation(name)
     return res
 
 if __name__ == '__main__':

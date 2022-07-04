@@ -304,7 +304,6 @@ def find_indicator(name):
     curs.execute(sql, code)
     data = curs.fetchall()
     res = process_data.indi2dict(data)
-        
     conn.commit()
 
     sql = "select per, pbr from stock_marcap where name = %s and date = %s"
@@ -317,7 +316,6 @@ def find_indicator(name):
         dic = {"per": temp[0][0], "pbr":temp[0][1]}
 
     res.update(dic)
-
     conn.commit()
 
     return res
@@ -335,3 +333,26 @@ def sector_pebr(name):
 
     res = process_data.sector2dict(datas)
     return res
+
+# 기업의 적정주가 ver.1 (EPS * ROE)
+def get_evalutation(name):
+    sql = "select code from corp_krx where name = %s"
+    curs.execute(sql, name)
+    temp = curs.fetchall()
+        
+    if len(temp) == 0:    
+       return "선물 혹은 잘못된 기업명이에요~"
+    conn.commit()
+    code = temp[0][0]
+
+    sql = "select eps, roe from stock_indicator where code = %s ORDER BY date DESC limit 4"
+    curs.execute(sql, code)
+    datas = curs.fetchall()
+    conn.commit()
+    eps = sum(data[0] for data in datas)
+    roe = datas[0][1]
+
+    return round(eps * roe)
+
+
+    
