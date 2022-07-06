@@ -43,14 +43,14 @@ def every_do():
 
 # 재무제표
 def stock_statement():
-    f = open("statements2.csv", 'r', encoding="UTF-8")
+    f = open("21_22_statement.csv", 'r', encoding="cp949")
     csvReader = csv.reader(f)
 
     for row in csvReader:
-        if row[0] == "": #첫 행은 컬럼명이니까 PASS
+        if row[0] == "열1": #첫 행은 컬럼명이니까 PASS
             continue
 
-        code = row[1]
+        code = row[1].zfill(6)
         report_type = row[3]
         asset = double(row[4].replace(",", ""))
         equity = double(row[5].replace(",", ""))
@@ -85,6 +85,8 @@ def stock_statement():
     conn.commit()
     f.close()
     conn.close()
+
+stock_statement()
 
 # KRX to DB V1 
 def KRXstock_List():

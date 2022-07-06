@@ -13,11 +13,21 @@ today = datetime.today().strftime("%Y-%m-%d")
 temp_list = []  
 code_list = [] # 기업 코드 리스트
 
-# 통합.csv 를 각각 분기별 데이터로 만들기
-# 2021 반기보고서 -> 2021.09.30 2분기(연결X) 의 값
+# 상장된 기업의 코드 리스트 생성
+def find_code():
+    sql = "select code from corp_krx"
+    curs.execute(sql)
+    temp = list(curs.fetchall())
+
+    for code in temp:
+        code_list.append(code[0])
+
+find_code()
+
+# 연결 보고서를 각 분기별 보고서로 만들기
 def report_cal():
     for code in code_list:
-        for year in range(2015, 2022):
+        for year in range(2021, 2023):
             sql = "select * from stock_statements_origin where code = %s and date like %s"
 
             curs.execute(sql, (code, str(year) + "%"))
@@ -81,27 +91,16 @@ def std_day():
 
     return data[0][0]
 
-# 상장된 기업의 코드 리스트 생성
-def find_code():
-    sql = "select code from corp_krx"
-    curs.execute(sql)
-    temp = list(curs.fetchall())
-
-    for code in temp:
-        code_list.append(code[0])
-
-find_code()
-
 # code로 재무제표 기반 EPS, BPS, ROE 계산
 def cal_statement():
     cnt = 0
     last_day = std_day()
     for code in code_list:
-        sql = "SELECT sm.stocks FROM stock_marcap as sm where code like %s and date = %s"
+        sql = "SELECT stocks FROM stock_marcap where code like %s and date = %s"
 
         curs.execute(sql, (code[:5]+"%", last_day))
         datas = curs.fetchall()
-        
+
         if len(datas) == 0:
             # 값이 안 긁히면 거래정지 or 상장폐지
             print(code + " 이 기업은 거래정지 or 상장폐지된 기업")  
@@ -110,17 +109,11 @@ def cal_statement():
             # 보통주 + 모든 우선주 주식 수
             total_stock = sum(data[0] for data in datas)
     
-        # 임시 쿼리문
         sql = "SELECT code, date, type, equity, equity_non, profit, profit_non \
-                from stock_statements where code = %s"
+                from stock_statements where code = %s and date >= 2020-12"
         
         curs.execute(sql, code)
-        temp = curs.fetchall()
-        
-        datas = []
-
-        for data in temp:
-            datas.append(list(data))
+        datas = list(curs.fetchall())
 
         datas.sort(key = lambda x : x[1], reverse=True) # 내림차순 정렬
 
@@ -156,6 +149,7 @@ def cal_statement():
     conn.commit()
     conn.close()
 
+cal_statement()
 
 # PER, PBR 계산
 def pebr_statement():
@@ -408,8 +402,6 @@ def sector_pebr():
             
     conn.commit()
     conn.close()
-
-sector_pebr()
 
 # EPS 증가율 계산
 def cal_epsRate():
