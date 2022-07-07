@@ -149,25 +149,24 @@ def cal_statement():
     conn.commit()
     conn.close()
 
-cal_statement()
-
 # PER, PBR 계산
 def pebr_statement():
     for code in code_list:
         sql = "Select date, eps, bps from stock_indicator where code = %s"
         curs.execute(sql, code)
         indi = list(curs.fetchall())
-        
+
         if len(indi) == 0:
             # 값이 안 긁히면 거래정지 or 상장폐지
             print(code + " 이 기업은 재무제표가 없어요 ㅠㅠ")  
             continue
     
         for i in range(3, len(indi)):
-            start = indi[i-1][0] + "-01"
+            start = indi[i-1][0] + "-31"
             end = indi[i][0] + "-31"     
             sql = "Select date, close, marcap from stock_marcap where code = %s and date between %s and %s"
-        
+            print(start, end)
+
             curs.execute(sql, (code, start, end))
             marcaps = list(curs.fetchall())
         
@@ -191,25 +190,24 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2020-01-01"
-    end = "2021-09-31"
+    start = "2022-07-02"
+    end = "2022-07-06"
     
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
-        sql = "Select eps, bps from stock_indicator where code = %s and date >= '2021-09'"
+        sql = "Select eps, bps from stock_indicator where code = %s ORDER BY date DESC limit 4"
         curs.execute(sql, code)
         temp = curs.fetchall()
         
         if len(temp) == 0:
             print(code + " 이 기업은 재무제표가 없습니다 ...")
-            eps = 0
-            bps = 0
+            continue
         else:
-            eps = temp[0][0]
+            eps = sum(val[0] for val in temp)
             bps = temp[0][1]
 
         # 마지막 재무제표에서 매출액 뽑아오기
-        sql = "Select revenue from stock_statements where code = %s and date = '2021-09'"
+        sql = "Select revenue from stock_statements where code = %s and date = '2022-03'"
         curs.execute(sql, code)
         temp = curs.fetchall()
         
@@ -232,7 +230,7 @@ def every_pebr():
             for date, close, marcap in temp:
                 per = close / eps if eps != 0 else 0
                 pbr = close / bps if bps != 0 else 0
-                psr = marcap/ rev if rev != 0 else 0
+                psr = marcap / rev if rev != 0 else 0
                 sql = "Update stock_marcap SET per = %s, pbr = %s, psr = %s where code = %s and date = %s"
                 curs.execute(sql, (per, pbr, psr, code, date))
                 
@@ -240,6 +238,7 @@ def every_pebr():
     
     conn.commit()
     conn.close()
+
 
 # PSR 계산
 def psr_statement():
@@ -361,8 +360,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2020-01-01", "%Y-%m-%d")
-    end = datetime.strptime("2021-09-30", "%Y-%m-%d")
+    start = datetime.strptime("2022-05-28", "%Y-%m-%d")
+    end = datetime.strptime("2022-07-06", "%Y-%m-%d")
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
@@ -396,8 +395,9 @@ def sector_pebr():
             if per == 0 and pbr == 0 and psr == 0:
                 continue
             
-            sql = "UPDATE stock_sector SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
-            curs.execute(sql, (per, pbr, psr, date, sector))
+            sql = "INSERT INTO stock_sector (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
+            # sql = "UPDATE stock_sector SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
+            curs.execute(sql, (date, sector, per, pbr, psr))
             print(sector, date, " OK")
             
     conn.commit()
@@ -461,6 +461,7 @@ def cal_pegr():
 
     conn.commit()
     conn.close()
+
 
 
                  

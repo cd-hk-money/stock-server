@@ -86,8 +86,6 @@ def stock_statement():
     f.close()
     conn.close()
 
-stock_statement()
-
 # KRX to DB V1 
 def KRXstock_List():
     stock = fdr.StockListing("KRX")
