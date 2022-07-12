@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 
 import pymysql, json, process_data
 
+
 today = datetime.now().strftime("%Y-%m-%d") # 오늘
 stdday = (datetime.now() - relativedelta(years=5)).strftime("%Y-%m-%d") # 5년전 오늘
 b4year = (datetime.now() - relativedelta(years=1)).strftime("%Y-%m-%d") # 1년전 오늘
@@ -354,5 +355,3 @@ def get_evalutation(name):
 
     return round(eps * roe)
 
-
-    

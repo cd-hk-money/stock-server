@@ -6,6 +6,7 @@ import uvicorn
 import asyncio
 import nest_asyncio
 import testcontroller
+import stock_news
 
 ##--------------- Eureka 설정 --------------##
 # nest_asyncio.apply()
@@ -83,7 +84,13 @@ async def stockinfo(name: str):
         "pbr": data[15],
         "sector": data[16]
     })
-    
+
+#종목 뉴스
+@app.get("/stock/{name}/news")
+async def stocknews(name: str):
+    res = stock_news.crawl_news(name)
+    return res
+
 #2주 주가 데이터 (시간 벌기용)
 @app.get("/stock/{name}/price")
 async def stockgraph(name: str):
