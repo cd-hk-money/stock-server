@@ -26,9 +26,7 @@ std_day = today - relativedelta(years=5)
 last_day = (datetime.strptime(state_cal.std_day(), "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
 
 def every_do():
-    os.system(f'cd marcap')
-    os.system(f'git pull origin master') 
-
+    os.system('cd marcap && git pull origin master')
     df = marcap_data(last_day, today)
     
     if len(df.index) == 0:

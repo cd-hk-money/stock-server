@@ -3,7 +3,6 @@ import requests
 import re
 from bs4 import BeautifulSoup
 
-
 def crawl_news(name):
     #1. 네이버 증권에 Request 요청
     url = "https://finance.naver.com/news/news_search.naver?q={q}&x=21&y=5"
@@ -11,8 +10,6 @@ def crawl_news(name):
     q_enc = urllib.parse.quote_plus(q, encoding='euc-kr')
 
     res = requests.get(url.format(q = q_enc))
-    print(res)
-
 
     #2. 필요한 데이터 파싱하기
     #BS 객체 생성, 뉴스 첫 페이지 긁어오기

@@ -190,8 +190,8 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-07-02"
-    end = "2022-07-06"
+    start = "2022-07-04"
+    end = "2022-07-14"
     
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
@@ -360,8 +360,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-05-28", "%Y-%m-%d")
-    end = datetime.strptime("2022-07-06", "%Y-%m-%d")
+    start = datetime.strptime("2022-07-04", "%Y-%m-%d")
+    end = datetime.strptime("2022-07-14", "%Y-%m-%d")
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:

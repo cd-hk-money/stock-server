@@ -103,16 +103,17 @@ async def stock_sector_pebr(name:str):
     res = testcontroller.sector_pebr(name)
     return res
 
-#5년 주가 데이터 (소요시간 7초)
+#5년 주가 데이터 (소요시간 4초)
 @app.get("/stock/{name}/years-price")
-async def detailgraph(name: str, flag: str):
+async def detailgraph(name: str):
     res = testcontroller.graph5year(name)
     return res
 
-#5년 거래량 데이터 (소요시간 7초)
+#5년 거래량 데이터 (소요시간 4초)
 @app.get("/stock/{name}/years-volume")
 async def voulumegraph(name: str):
     res = testcontroller.graphvolume5year(name)
+    return res
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{name}/price/{start}/{end}")
