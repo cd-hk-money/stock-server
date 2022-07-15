@@ -15,7 +15,7 @@ import stock_news
 #     my_server_host = "127.0.0.1"
 #     rest_port = 8050
 #     ec.init(eureka_server="http://localhost:8761/eureka",
-#             app_name="stock-service",
+#             app_stock_code="stock-service",
 #             instance_host=my_server_host,
 #             instance_port=rest_port)
 
@@ -61,14 +61,14 @@ async def daily_recommand():
     return data
 
 #종목 검색 (기본정보)
-@app.get("/stock/{name}")
-async def stockinfo(name: str):
-    data = testcontroller.stock_info(name)
+@app.get("/stock/{stock_code}")
+async def stockinfo(code: str):
+    data = testcontroller.stock_info(code)
 
     return JSONResponse({
         "date": data[0],
         "code": data[1],
-        "name": data[2],
+        "stock_code": data[2],
         "market": data[3],
         "close": data[4],
         "changes": data[5],
@@ -86,63 +86,63 @@ async def stockinfo(name: str):
     })
 
 #종목 뉴스
-@app.get("/stock/{name}/news")
-async def stocknews(name: str):
-    res = stock_news.crawl_news(name)
+@app.get("/stock/{stock_code}/news")
+async def stocknews(stock_code: str):
+    res = stock_news.crawl_news(stock_code)
     return res
 
 #2주 주가 데이터 (시간 벌기용)
-@app.get("/stock/{name}/price")
-async def stockgraph(name: str):
-    res = testcontroller.graph2weeks(name)
+@app.get("/stock/{stock_code}/price")
+async def stockgraph(stock_code: str):
+    res = testcontroller.graph2weeks(stock_code)
     return res
 
 #해당 기업 업종평균 per, pbr, psr (1년치)
-@app.get("/stock/{name}/sector")
-async def stock_sector_pebr(name:str):
-    res = testcontroller.sector_pebr(name)
+@app.get("/stock/{stock_code}/sector")
+async def stock_sector_pebr(stock_code:str):
+    res = testcontroller.sector_pebr(stock_code)
     return res
 
 #5년 주가 데이터 (소요시간 4초)
-@app.get("/stock/{name}/years-price")
-async def detailgraph(name: str):
-    res = testcontroller.graph5year(name)
+@app.get("/stock/{stock_code}/years-price")
+async def detailgraph(stock_code: str):
+    res = testcontroller.graph5year(stock_code)
     return res
 
 #5년 거래량 데이터 (소요시간 4초)
-@app.get("/stock/{name}/years-volume")
-async def voulumegraph(name: str):
-    res = testcontroller.graphvolume5year(name)
+@app.get("/stock/{stock_code}/years-volume")
+async def voulumegraph(stock_code: str):
+    res = testcontroller.graphvolume5year(stock_code)
     return res
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
-@app.get("/stock/{name}/price/{start}/{end}")
-async def custom_graph(name:str, start:str, end:str):
-    res = testcontroller.graph_detail(name, start, end)
+@app.get("/stock/{stock_code}/price/{start}/{end}")
+async def custom_graph(stock_code:str, start:str, end:str):
+    res = testcontroller.graph_detail(stock_code, start, end)
     return res
 
 #기업의 재무제표 (최근 4분기)
-@app.get("/stock/{name}/statement")
-async def stock_statement(name: str):
-    res = testcontroller.find_statement(name)
+@app.get("/stock/{stock_code}/statement")
+async def stock_statement(stock_code: str):
+    res = testcontroller.find_statement(stock_code)
     return res
 
 #영업이익, 매출액 그래프 type 으로 구분
-@app.get("/stock/{name}/statement/{type}")
-async def ebitda_graph(type:str, name: str):
-    res = testcontroller.type2graph(type, name)
+@app.get("/stock/{stock_code}/statement/{type}")
+async def ebitda_graph(stock_code: str, type:str):
+    res = testcontroller.type2graph(type, stock_code)
     return res
     
 #기업의 보조지표 EPS, BPS, ROE (최근 4분기)
-@app.get("/stock/{name}/indicator")
-async def stock_indicator(name:str):
-    res = testcontroller.find_indicator(name)
+@app.get("/stock/{stock_code}/indicator")
+async def stock_indicator(stock_code:str):
+    res = testcontroller.find_indicator(stock_code)
     return res
 
 #기업의 적정주가
-@app.get("/stock/{name}/evaluation")
-async def stock_evaluation(name):
-    res = testcontroller.get_evalutation(name)
+@app.get("/stock/{stock_code}/evaluation")
+async def stock_evaluation(stock_code):
+    res = testcontroller.get_evalutation(stock_code)
     return res
 
 if __name__ == '__main__':

@@ -116,12 +116,12 @@ def find_recommand():
     
     return dict
 
-def stock_info(name):
+def stock_info(code):
     sql = "select sm.*, ck.sector from stock_marcap sm inner join corp_krx as ck \
-        on sm.name = ck.name \
-        where sm.name = %s ORDER BY date DESC limit 1"
+        on sm.code = ck.code \
+        where sm.code = %s ORDER BY date DESC limit 1"
         
-    curs.execute(sql, name)
+    curs.execute(sql, code)
     data = curs.fetchall()
     
     if len(data) == 0:
@@ -135,9 +135,9 @@ def stock_info(name):
 
     return data
 
-def graph2weeks(name):
-    sql = "select date, close from stock_marcap where name = %s and date >= DATE_ADD(%s, INTERVAL -14 DAY) ORDER BY date ASC limit 14"
-    curs.execute(sql, (name, last_day))
+def graph2weeks(code):
+    sql = "select date, close from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -14 DAY) ORDER BY date ASC limit 14"
+    curs.execute(sql, (code, last_day))
     data = curs.fetchall()
     
     if len(data) == 0:
@@ -157,9 +157,9 @@ def graph2weeks(name):
     
     return res
 
-def graph5year(name):
-    sql = "select date, close from stock_marcap where name = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
-    curs.execute(sql, (name, last_day))
+def graph5year(code):
+    sql = "select date, close from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
+    curs.execute(sql, (code, last_day))
     data = curs.fetchall()
     
     if len(data) == 0:
@@ -178,9 +178,9 @@ def graph5year(name):
     
     return res
 
-def graphvolume5year(name):
-    sql = "select date, volume from stock_marcap where name = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
-    curs.execute(sql, (name, last_day))
+def graphvolume5year(code):
+    sql = "select date, volume from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
+    curs.execute(sql, (code, last_day))
     data = curs.fetchall()
     
     if len(data) == 0:
@@ -199,9 +199,9 @@ def graphvolume5year(name):
     
     return res
 
-def graph_detail(name, start, end):
-    sql = "select date, close from stock_marcap where name = %s and date between %s and %s"
-    curs.execute(sql, (name, start, end))
+def graph_detail(code, start, end):
+    sql = "select date, close from stock_marcap where code = %s and date between %s and %s"
+    curs.execute(sql, (code, start, end))
     data = curs.fetchall()
     if len(data) == 0:
 
@@ -219,18 +219,7 @@ def graph_detail(name, start, end):
     res.update(res2)
     return res
 
-def type2graph(type, name):
-    sql = "select code from corp_krx where name = %s"
-    curs.execute(sql, name)
-    temp = curs.fetchall()
-    
-    if len(temp) == 0:
-        conn.commit()
-    
-        return "선물 혹은 잘못된 기업명이에요~"
-
-    code = temp[0][0]
-    
+def type2graph(type, code):
     if type == "ebitda":
         sql = "select date, ebitda from stock_statements where code = %s"
     elif type == "asset":
@@ -249,7 +238,8 @@ def type2graph(type, name):
         sql = "select date, cash from stock_statements where code = %s"
     elif type == "gross_margin":
         sql = sql = "select date, gross_margin from stock_statements where code = %s" 
-        
+
+    print(sql)
     curs.execute(sql, code)
     data = curs.fetchall()
 
@@ -269,18 +259,7 @@ def type2graph(type, name):
     
     return res
 
-def find_statement(name):
-    sql = "select code from corp_krx where name = %s"
-    curs.execute(sql, name)
-    temp = curs.fetchall()
-    
-    if len(temp) == 0:
-        conn.commit()
-    
-        return "선물 혹은 잘못된 기업명이에요~"
-
-    code = temp[0][0]
-
+def find_statement(code):
     sql = "select * from stock_statements where code = %s ORDER BY date DESC limit 4"
     curs.execute(sql, code)
     
@@ -291,16 +270,7 @@ def find_statement(name):
     
     return res
    
-def find_indicator(name):
-    sql = "select code from corp_krx where name = %s"
-    curs.execute(sql, name)
-    temp = curs.fetchall()
-        
-    if len(temp) == 0:    
-       return "선물 혹은 잘못된 기업명이에요~"
-    conn.commit()
-    code = temp[0][0]
-
+def find_indicator(code):
     sql = "select * from stock_indicator where code = %s ORDER BY date DESC limit 4"
     curs.execute(sql, code)
     data = curs.fetchall()
@@ -308,7 +278,7 @@ def find_indicator(name):
     conn.commit()
 
     sql = "select per, pbr from stock_marcap where name = %s and date = %s"
-    curs.execute(sql, (name, last_day))
+    curs.execute(sql, (code, last_day))
     temp = curs.fetchall()
         
     if len(temp) == 0:
@@ -321,9 +291,9 @@ def find_indicator(name):
 
     return res
 
-def sector_pebr(name):
-    sql = "select sector from corp_krx where name = %s"
-    curs.execute(sql, name)
+def sector_pebr(code):
+    sql = "select sector from corp_krx where code = %s"
+    curs.execute(sql, code)
     data = curs.fetchall()
 
     sector = data[0][0]
@@ -335,23 +305,60 @@ def sector_pebr(name):
     res = process_data.sector2dict(datas)
     return res
 
-# 기업의 적정주가 ver.1 (EPS * ROE)
-def get_evalutation(name):
-    sql = "select code from corp_krx where name = %s"
-    curs.execute(sql, name)
-    temp = curs.fetchall()
-        
-    if len(temp) == 0:    
-       return "선물 혹은 잘못된 기업명이에요~"
-    conn.commit()
-    code = temp[0][0]
-
+# 기업의 적정주가 목표 4가지
+def get_evalutation(code):
+    # 1. EPS * ROE (분기)
     sql = "select eps, roe from stock_indicator where code = %s ORDER BY date DESC limit 4"
     curs.execute(sql, code)
     datas = curs.fetchall()
+
+    if len(datas) == 0:
+        return "잘못된 기업명"
+
     conn.commit()
     eps = sum(data[0] for data in datas)
     roe = datas[0][1]
 
-    return round(eps * roe)
+    if datas[-3][1] < datas[-2][1] < datas[-1][1]: # ROE 가 3년연속 상승 이라면?
+        s_rim_roe = datas[-1][1]
+    else:
+        s_rim_roe = round((datas[-3][1] + (datas[-2][1] * 2) + (datas[-1][1] * 3)) / 6, 2)
+
+    eval1 = eps * roe
+
+    # 2. EPS * PBR/PER (일일)
+    sql = "select per, pbr, stocks from stock_marcap where code = %s ORDER BY date DESC limit 1"
+    curs.execute(sql, code)
+    datas = curs.fetchall()
+    conn.commit()
+
+    s_roe = round((datas[0][1] / datas[0][0]) * 100, 2)
+    
+    eval2 = eps * s_roe
+
+    # 3. S-Rim 적정주가
+    sql = "select equity, equity_non from stock_statements where code = %s ORDER BY date DESC limit 1"
+    curs.execute(sql, code)
+    datas = curs.fetchall()
+    conn.commit()
+
+    equity = datas[0][0] - datas[0][1] # 자본총계 (지배)
+    rate = 10.2 # 한국 신용평가의 BBB- 등급 채권의 5년 수익률 
+    
+    # 보통주 + 우선주
+    sql = "select stocks from stock_marcap where code like %s and date = %s"
+    curs.execute(sql, (code[:5]+"%", last_day))
+    datas = curs.fetchall()
+
+    if len(datas) == 0:
+        # 값이 안 긁히면 거래정지 or 상장폐지
+        print(code + " 이 기업은 거래정지 or 상장폐지된 기업")  
+    else:
+        # 보통주 + 모든 우선주 주식 수
+        total_stock = sum(data[0] for data in datas)
+
+    eval3 = round((equity * (s_rim_roe / rate)) / total_stock, 2)
+
+    return process_data.evulation2json(eval1, eval2, eval3)
+
 

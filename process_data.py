@@ -121,3 +121,13 @@ def sector2dict(datas):
 
         dict[data[0]].append({"per": data[1], "pbr": data[2], "psr": data[3]})
     return dict
+
+# 적정주가 key, value 맞춰주기
+def evulation2json(v1, v2, v3):
+    dic = dict()
+    dic["EPS * ROE"] = v1
+    dic["EPS * (PBR/PER)"] = v2
+    dic["S-RIM"] = v3
+
+    return dic
+
