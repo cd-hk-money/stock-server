@@ -34,8 +34,11 @@ def every_do():
         pass
     else:
         df.to_csv("marcap_" + today.strftime("%Y-%m-%d") + ".csv", mode="w")
-        print("today data ready")
+        print("today data ready & update start ...")
+        every_marcap()
+        state_cal.union_table()
 
+    
 # schedule.every().day.at("07:00").do(every_do)
 #-----------------------------------------------------------------------------------#
 

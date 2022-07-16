@@ -11,7 +11,6 @@ import pymysql
 
 # 1. 일일 주가 최신화, stock_marcap_old, stock_marcap 2개 DB UPDATE
 # dataToDb.every_do()
-# dataToDb.every_marcap()
 # state_cal.union_table()
 
 # 2. 일일 종합 지수 최신화 (KOSPI, NASDAQ, S&P500, US채권)
@@ -19,5 +18,5 @@ import pymysql
 
 # 3. 매일 갱신해야 하는 메소드지만 아직 불안정한 것들
 # state_cal.every_pebr() # 오늘날짜까지 per, pbr, psr update
-# state_cal.sector_pebr()
+state_cal.sector_pebr()
  

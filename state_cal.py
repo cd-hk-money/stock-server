@@ -188,11 +188,14 @@ def pebr_statement():
     conn.commit()
     conn.close()
 
+#PER, PBR = 0 인 시작 날짜
+def get_start():
+    sql = "select * from stock_marcap where "
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-07-04"
-    end = "2022-07-14"
-    
+    start = "2022-07-01"
+    end = std_day()
+
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
         sql = "Select eps, bps from stock_indicator where code = %s ORDER BY date DESC limit 4"
@@ -225,7 +228,7 @@ def every_pebr():
         
         # PER, PBR, PSR 한번에 우겨넣기
         if len(temp) == 0:
-            print(code + " 거래중지가 된 기업입니다.")
+            print(code + " 거래중지가 된 기업 or 재무제표가 없습니다 .")
         else:
             for date, close, marcap in temp:
                 per = close / eps if eps != 0 else 0
@@ -360,8 +363,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-07-04", "%Y-%m-%d")
-    end = datetime.strptime("2022-07-14", "%Y-%m-%d")
+    start = datetime.strptime("2022-07-14", "%Y-%m-%d")
+    end = datetime.strptime("2022-07-16", "%Y-%m-%d")
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
