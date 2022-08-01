@@ -4,6 +4,8 @@ import pymysql
 import FinanceDataReader as fdr
 import csv
 
+import stockservice
+
 conn = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="1234", db="capstone", charset="utf8")
 curs = conn.cursor()
 conn.commit()
@@ -363,8 +365,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-07-14", "%Y-%m-%d")
-    end = datetime.strptime("2022-07-16", "%Y-%m-%d")
+    start = datetime.strptime("2022-07-16", "%Y-%m-%d")
+    end = datetime.strptime("2022-08-01", "%Y-%m-%d")
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
@@ -465,6 +467,57 @@ def cal_pegr():
     conn.commit()
     conn.close()
 
+# 적정주가 (분기) 계산
+def cal_evalu():
+    for code in code_list:
+        sql = "select date, eps, roe from stock_indicator where code = %s ORDER BY date"
+        curs.execute(sql, code)
+        datas = curs.fetchall()
 
+        if len(datas) == 0:
+            print("잘못된 기업명 or 데이터가 없다")
+            continue
 
-                 
+        conn.commit()
+        
+        for i in range(3, len(datas)):
+            eps = datas[i][1] + datas[i-1][1] + datas[i-2][1] + datas[i-3][1]
+            roe = datas[i][2]
+
+            if datas[i-3][2] < datas[i-2][2] < datas[i-1][2]: # ROE 가 3년연속 상승 이라면?
+                s_rim_roe = datas[i][2]
+            elif datas[i-3][2] > datas[i-2][2] > datas[i-1][2]: # 3년 연속 하라이라면?
+                s_rim_roe = datas[i][2]
+            else:
+                s_rim_roe = round((datas[i-3][2] + (datas[i-2][2] * 2) + (datas[i-1][2] * 3)) / 6, 2)
+
+            eval1 = round(eps * roe)
+                    
+            # S-Rim 적정주가
+            sql = "select equity, equity_non from stock_statements where code = %s and date = %s"
+            curs.execute(sql, (code, datas[i][0]))
+            datas2 = curs.fetchall()
+            conn.commit()
+
+            equity = datas2[0][0] - datas2[0][1] # 자본총계 (지배)
+            rate = 10.2 # 한국 신용평가의 BBB- 등급 채권의 5년 수익률 
+            
+            # 보통주 + 우선주
+            sql = "select stocks from stock_marcap where code like %s and date = %s"
+            curs.execute(sql, (code[:5]+"%", stockservice.last_day))
+            datas3 = curs.fetchall()
+
+            if len(datas3) == 0:
+                # 값이 안 긁히면 거래정지 or 상장폐지
+                print(code + " 이 기업은 거래정지 or 상장폐지된 기업")
+                continue  
+            else:
+                # 보통주 + 모든 우선주 주식 수
+                total_stock = sum(data[0] for data in datas3)
+
+            eval2 = round((equity * (s_rim_roe / rate)) / total_stock)
+
+            sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
+            curs.execute(sql, (eval1, eval2, code, datas[i][0]))
+
+cal_evalu()
