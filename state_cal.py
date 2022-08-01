@@ -190,9 +190,6 @@ def pebr_statement():
     conn.commit()
     conn.close()
 
-#PER, PBR = 0 인 시작 날짜
-def get_start():
-    sql = "select * from stock_marcap where "
 # PER, PBR, PSR 업데이트용
 def every_pebr():
     start = "2022-07-01"
@@ -519,5 +516,3 @@ def cal_evalu():
 
             sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
             curs.execute(sql, (eval1, eval2, code, datas[i][0]))
-
-cal_evalu()
