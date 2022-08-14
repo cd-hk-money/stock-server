@@ -123,11 +123,21 @@ def sector2dict(datas):
     return dict
 
 # 적정주가 key, value 맞춰주기
-def evulation2json(v1, v2, v3):
-    dic = dict()
-    dic["EPS * ROE"] = v1
-    dic["EPS * (PBR/PER)"] = v2
-    dic["S-RIM"] = v3
+def evulation2json(datas):
+    dic = defaultdict(list)
 
+    for date, v1, v2 in datas:
+        dic["date"].append(date)
+        dic["proper-price"].append(v1)
+        dic["S-rim"].append(v2)
+        
     return dic
 
+def daily_evalu(datas):
+    dic = defaultdict(list)
+
+    for date, v in datas:
+        dic["date"].append(date)
+        dic["value"].append(v)
+    
+    return dic

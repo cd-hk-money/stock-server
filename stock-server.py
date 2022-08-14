@@ -147,8 +147,9 @@ async def stock_evaluation(stockcode: str):
 
 @app.get("/stock/{stockcode}/evaluation/daily")
 async def stock_daily_evaluation(stockcode: str):
-    return "OK"
-    
+    res = stockservice.get_daily_evalutation(stockcode)
+    return res
+
 if __name__ == '__main__':
     uvicorn.run(app="stock-server:app", port=8080, reload=True)
 
