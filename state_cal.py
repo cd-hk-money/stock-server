@@ -192,7 +192,7 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-07-01"
+    start = "2022-08-01"
     end = std_day()
 
     for code in code_list:
@@ -362,8 +362,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-07-16", "%Y-%m-%d")
-    end = datetime.strptime("2022-08-01", "%Y-%m-%d")
+    start = datetime.strptime("2022-08-01", "%Y-%m-%d")
+    end = datetime.strptime("2022-08-14", "%Y-%m-%d")  # 현재 이부분이 수동으로 조절 해야함..
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
@@ -516,3 +516,65 @@ def cal_evalu():
 
             sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
             curs.execute(sql, (eval1, eval2, code, datas[i][0]))
+
+#적정주가 일일 계산
+# 계산식 : EPS * PBR/PER
+def cal_daily_evalu():
+    for code in code_list:
+        sql = "select date, eps from stock_indicator where code = %s ORDER BY date"
+        curs.execute(sql, code)
+        datas = curs.fetchall()
+
+        if len(datas) == 0:
+            print("잘못된 기업명 or 데이터가 없다")
+            continue
+        
+        #EPS는 1년간의 연속된 값을 사용한다, 근데 날짜 계산이 빡센..
+        for i in range(3, len(datas)-1):
+            eps = datas[i][1] + datas[i-1][1] + datas[i-2][1] + datas[i-3][1]
+            
+            #EPS 와 같은 기간의 PER, PBR을 읽어오자
+            start = datas[i][0] + "-01"
+            end = datas[i+1][0] + "-00"
+
+            sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
+            curs.execute(sql, (code, start, end))
+            datas2 = list(curs.fetchall())
+
+            for data in datas2:
+                if data[2] == 0 or data[1] == 0:
+                    print("계산할 수 없습니다. can't devide zero ")
+                    continue
+
+                v = round(eps * ((data[2] / data[1]) * 100))
+
+                sql = "INSERT INTO daily_evaluation (date, code, daily_proper_price) values(%s, %s, %s)"
+                curs.execute(sql, (data[0], code, v))
+            
+            conn.commit()
+        
+        #일단 최근자의 예측을 위해 마지막 재무제표 기준 계산
+        if len(datas) >= 4:
+            eps = datas[-1][1] + datas[-2][1] + datas[-3][1] + datas[-4][1]
+            start = datas[-1][0] + "-01" 
+            end = std_day()
+
+            sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
+            curs.execute(sql, (code, start, end))
+            datas3 = list(curs.fetchall())
+            
+            for data in datas3:
+                if data[2] == 0 or data[1] == 0:
+                        print("계산할 수 없습니다. can't devide zero ")
+                        continue
+
+                v = eps * ((data[2] / data[1]) * 100)
+                sql = "INSERT INTO daily_evaluation (date, code, daily_proper_price) values(%s, %s, %s)"
+                curs.execute(sql, (data[0], code, v))
+                print(data[0] + " " + code + " OK")
+
+            conn.commit()
+        else:
+            print("최근 1년치의 EPS가 없어 계산 불가")
+    
+cal_daily_evalu()

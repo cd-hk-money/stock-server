@@ -141,10 +141,14 @@ async def stock_indicator(stockcode:str):
 
 #기업의 적정주가
 @app.get("/stock/{stockcode}/evaluation")
-async def stock_evaluation(stockcode):
+async def stock_evaluation(stockcode: str):
     res = stockservice.get_evalutation(stockcode)
     return res
 
+@app.get("/stock/{stockcode}/evaluation/daily")
+async def stock_daily_evaluation(stockcode: str):
+    return "OK"
+    
 if __name__ == '__main__':
     uvicorn.run(app="stock-server:app", port=8080, reload=True)
 
