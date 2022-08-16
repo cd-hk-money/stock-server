@@ -82,7 +82,8 @@ async def stockinfo(stockcode: str):
         "stocks": data[13],
         "per": data[14],
         "pbr": data[15],
-        "sector": data[16]
+        "psr": data[16],
+        "sector": data[17]
     })
 
 #종목 뉴스

@@ -117,20 +117,19 @@ def find_recommand():
     return dict
 
 def stock_info(code):
-    sql = "select sm.*, ck.sector from stock_marcap sm inner join corp_krx as ck \
+    sql = "select sm.*, ck.sector from stock_marcap sm inner join stock_krx as ck \
         on sm.code = ck.code \
         where sm.code = %s ORDER BY date DESC limit 1"
         
     curs.execute(sql, code)
     data = curs.fetchall()
-    
+
     if len(data) == 0:
         conn.commit()
 
         return "잘못된 기업명입니다~"
 
     data = data[0]
-    
     conn.commit()
 
     return data
@@ -309,8 +308,10 @@ def sector_pebr(code):
 def get_evalutation(code):
     sql = "select date, proper_price, s_rim from stock_indicator where code = %s order by date DESC limit 12"
     curs.execute(sql, code)
-    data = curs.fetchall()
+    data = list(curs.fetchall())
 
+    data.sort(key = lambda x : x[0])
+    print(data)
     return process_data.evulation2json(data)
 
     # 22-08-14 DB에 적정주가를 저장함에 따라 사용 X
