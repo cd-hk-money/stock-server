@@ -140,12 +140,13 @@ async def stock_indicator(stockcode:str):
     res = stockservice.find_indicator(stockcode)
     return res
 
-#기업의 적정주가
+#기업의 적정주가 (분기)
 @app.get("/stock/{stockcode}/evaluation")
 async def stock_evaluation(stockcode: str):
     res = stockservice.get_evalutation(stockcode)
     return res
 
+#기업의 적정주가 (일일)
 @app.get("/stock/{stockcode}/evaluation/daily")
 async def stock_daily_evaluation(stockcode: str):
     res = stockservice.get_daily_evalutation(stockcode)

@@ -311,7 +311,7 @@ def get_evalutation(code):
     data = list(curs.fetchall())
 
     data.sort(key = lambda x : x[0])
-    print(data)
+
     return process_data.evulation2json(data)
 
     # 22-08-14 DB에 적정주가를 저장함에 따라 사용 X

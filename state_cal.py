@@ -192,7 +192,7 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-08-01"
+    start = "2022-08-15"
     end = std_day()
 
     for code in code_list:
@@ -331,9 +331,7 @@ def union_table():
             marcap = temp[0][12]
             stocks = temp[0][13]
 
-
             per, pbr, psr = 0, 0, 0
-
 
             sql = "INSERT INTO stock_marcap (date, code, name, market, close, changes, changes_ratio, open,\
                  high, low, volume, amount, marcap, stocks, per, pbr, psr)\
@@ -362,8 +360,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-08-01", "%Y-%m-%d")
-    end = datetime.strptime("2022-08-14", "%Y-%m-%d")  # 현재 이부분이 수동으로 조절 해야함..
+    start = datetime.strptime("2022-08-15", "%Y-%m-%d")
+    end = datetime.strptime("2022-08-17", "%Y-%m-%d")  # 현재 이부분이 수동으로 조절 해야함..
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
