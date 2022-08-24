@@ -122,6 +122,17 @@ def sector2dict(datas):
         dict[data[0]].append({"per": data[1], "pbr": data[2], "psr": data[3]})
     return dict
 
+# 업종평균 EPS, BPS, ROE key, value 맞추기
+def sectorqu2dict(datas):
+    dict = defaultdict(list)
+    for date, eps, bps, roe in datas:
+        dict["date"].append(date)
+        dict["sector_eps"].append(eps)
+        dict["sector_bps"].append(bps)
+        dict["sector_roe"].append(roe)
+
+    return dict
+
 # 적정주가 key, value 맞춰주기
 def evulation2json(datas):
     dic = defaultdict(list)

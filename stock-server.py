@@ -98,15 +98,17 @@ async def stockgraph(stockcode: str):
     res = stockservice.graph2weeks(stockcode)
     return res
 
-#해당 기업 업종평균 per, pbr, psr (1년치)
+#기업의 업종평균 EPS, BPS, ROE (최근 4분기)
 @app.get("/stock/{stockcode}/sector")
+async def stock_sector_ebps(stockcode:str):
+    res = stockservice.sector_ebps(stockcode)
+    return res
+    
+#해당 기업 업종평균 per, pbr, psr (1년치)
+@app.get("/stock/{stockcode}/sector/daily")
 async def stock_sector_pebr(stockcode:str):
     res = stockservice.sector_pebr(stockcode)
     return res
-
-## TODO
-#기업의 업종평균 EPS, BPS, ROE
-
 
 #5년 주가 데이터 (소요시간 4초)
 @app.get("/stock/{stockcode}/years-price")

@@ -35,8 +35,6 @@ def match_corp():
 
     js = json.dumps(data, ensure_ascii=False)
 
-    conn.commit()
-
     return data
 
 def match_krx():
@@ -47,8 +45,6 @@ def match_krx():
     data = process_data.codelist(temp)
 
     js = json.dumps(data, ensure_ascii=False)
-
-    conn.commit()
 
     return data
 
@@ -290,6 +286,7 @@ def find_indicator(code):
 
     return res
 
+# 기업이 해당하는 업종 평균 PER, PBR, PSR
 def sector_pebr(code):
     sql = "select sector from corp_krx where code = %s"
     curs.execute(sql, code)
@@ -297,11 +294,25 @@ def sector_pebr(code):
 
     sector = data[0][0]
 
-    sql = "select date, sector_per, sector_pbr, sector_psr from stock_sector where sector = %s and date between %s and %s"
+    sql = "select date, sector_per, sector_pbr, sector_psr from stock_sector_daily where sector = %s and date between %s and %s"
     curs.execute(sql, (sector, b4year, today))
     datas = curs.fetchall()
 
     res = process_data.sector2dict(datas)
+    return res
+
+def sector_ebps(code):
+    sql = "select sector from corp_krx where code = %s"
+    curs.execute(sql, code)
+    data = curs.fetchall()
+
+    sector = data[0][0]
+
+    sql = "select date, sector_eps, sector_bps, sector_roe from stock_sector where sector = %s ORDER by date DESC limit 4"
+    curs.execute(sql, sector)
+    datas = curs.fetchall()
+
+    res = process_data.sectorqu2dict(datas)
     return res
 
 # 기업의 적정주가 목표 4가지
