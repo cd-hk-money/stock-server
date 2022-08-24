@@ -104,6 +104,10 @@ async def stock_sector_pebr(stockcode:str):
     res = stockservice.sector_pebr(stockcode)
     return res
 
+## TODO
+#기업의 업종평균 EPS, BPS, ROE
+
+
 #5년 주가 데이터 (소요시간 4초)
 @app.get("/stock/{stockcode}/years-price")
 async def detailgraph(stockcode: str):

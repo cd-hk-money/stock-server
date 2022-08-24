@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta as rt
 from pandas import date_range
 import pymysql
 import FinanceDataReader as fdr
@@ -395,13 +396,57 @@ def sector_pebr():
             if per == 0 and pbr == 0 and psr == 0:
                 continue
             
-            sql = "INSERT INTO stock_sector (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
+            sql = "INSERT INTO stock_sector_daily (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
             # sql = "UPDATE stock_sector SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
             curs.execute(sql, (date, sector, per, pbr, psr))
             print(sector, date, " OK")
             
     conn.commit()
     conn.close()
+
+#업종평균 EPS, BPS, ROE (최적화 필요)
+def sector_indicator():
+    krx = fdr.StockListing('KRX')
+    temp = krx.drop(['Symbol', 'Market', 'Name', 'Industry', 'ListingDate', 'SettleMonth', 'Representative', 'HomePage', 'Region'], axis=1)
+    temp = temp.groupby('Sector').count()
+
+    sector_list = list(temp.index.values)
+
+    for sector in sector_list:  
+        data = krx[krx['Sector'] == sector]['Symbol']
+        start = datetime.strptime("2016-03", "%Y-%m")
+        end = datetime.strptime("2022-03", "%Y-%m")
+
+        eps, bps, roe = 0, 0, 0
+
+        while start <= end: # 2016-03 ~ 2022-03 6년치 계산
+            std = start.strftime("%Y-%m")
+            N = len(data)
+            for code in data:
+                sql = "select eps, bps, roe from stock_indicator where code = %s and date = %s"
+                curs.execute(sql, (code, std))
+                q = list(curs.fetchall())
+
+                if len(q) == 0:
+                    N -= 1
+                    continue
+
+                eps += q[0][0]
+                bps += q[0][1]
+                roe += q[0][2]
+            
+            if N != 0:
+                eps = round(eps/N, 2)
+                bps = round(bps/N, 2)
+                roe = round(roe/N, 2)
+            
+            # sql = "INSERT INTO stock_sector (date, sector, sector_eps, sector_bps, sector_roe) values (%s, %s, %s, %s, %s)"
+            sql = "UPDATE stock_sector SET sector_eps = %s, sector_bps = %s, sector_roe = %s where date = %s and sector = %s"
+            curs.execute(sql, (eps, bps, roe, std, sector))
+            print(sector + " OK")
+            start += rt(months=3)
+    
+    conn.commit()
 
 # EPS 증가율 계산
 def cal_epsRate():
