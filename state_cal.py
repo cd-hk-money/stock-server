@@ -193,7 +193,7 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-08-15"
+    start = "2022-08-28"
     end = std_day()
 
     for code in code_list:
@@ -361,8 +361,8 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-08-15", "%Y-%m-%d")
-    end = datetime.strptime("2022-08-17", "%Y-%m-%d")  # 현재 이부분이 수동으로 조절 해야함..
+    start = datetime.strptime("2022-08-28", "%Y-%m-%d")
+    end = datetime.strptime("2022-09-04", "%Y-%m-%d")  # 현재 이부분이 수동으로 조절 해야함..
     # date = std_day()
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:

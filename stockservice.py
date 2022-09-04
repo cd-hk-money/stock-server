@@ -270,18 +270,7 @@ def find_indicator(code):
     curs.execute(sql, code)
     data = curs.fetchall()
     res = process_data.indi2dict(data)
-    conn.commit()
 
-    sql = "select per, pbr from stock_marcap where name = %s and date = %s"
-    curs.execute(sql, (code, last_day))
-    temp = curs.fetchall()
-        
-    if len(temp) == 0:
-        dic = {"per": 0, "pbr": 0}
-    else:
-        dic = {"per": temp[0][0], "pbr":temp[0][1]}
-
-    res.update(dic)
     conn.commit()
 
     return res
@@ -325,59 +314,6 @@ def get_evalutation(code):
 
     return process_data.evulation2json(data)
 
-    # 22-08-14 DB에 적정주가를 저장함에 따라 사용 X
-    # # 1. EPS * ROE (분기)
-    # sql = "select eps, roe from stock_indicator where code = %s ORDER BY date DESC limit 4"
-    # curs.execute(sql, code)
-    # datas = curs.fetchall()
-
-    # if len(datas) == 0:
-    #     return "잘못된 기업명"
-
-    # conn.commit()
-    # eps = sum(data[0] for data in datas)
-    # roe = datas[0][1]
-
-    # if datas[-3][1] < datas[-2][1] < datas[-1][1]: # ROE 가 3년연속 상승 이라면?
-    #     s_rim_roe = datas[-1][1]
-    # else:
-    #     s_rim_roe = round((datas[-3][1] + (datas[-2][1] * 2) + (datas[-1][1] * 3)) / 6, 2)
-
-    # eval1 = eps * roe
-
-    # # 2. EPS * PBR/PER (일일)
-    # sql = "select per, pbr, stocks from stock_marcap where code = %s ORDER BY date DESC limit 1"
-    # curs.execute(sql, code)
-    # datas = curs.fetchall()
-    # conn.commit()
-
-    # s_roe = round((datas[0][1] / datas[0][0]) * 100, 2)
-    
-    # eval2 = eps * s_roe
-
-    # # 3. S-Rim 적정주가
-    # sql = "select equity, equity_non from stock_statements where code = %s ORDER BY date DESC limit 1"
-    # curs.execute(sql, code)
-    # datas = curs.fetchall()
-    # conn.commit()
-
-    # equity = datas[0][0] - datas[0][1] # 자본총계 (지배)
-    # rate = 10.2 # 한국 신용평가의 BBB- 등급 채권의 5년 수익률 
-    
-    # # 보통주 + 우선주
-    # sql = "select stocks from stock_marcap where code like %s and date = %s"
-    # curs.execute(sql, (code[:5]+"%", last_day))
-    # datas = curs.fetchall()
-
-    # if len(datas) == 0:
-    #     # 값이 안 긁히면 거래정지 or 상장폐지
-    #     print(code + " 이 기업은 거래정지 or 상장폐지된 기업")  
-    # else:
-    #     # 보통주 + 모든 우선주 주식 수
-    #     total_stock = sum(data[0] for data in datas)
-
-    # eval3 = round((equity * (s_rim_roe / rate)) / total_stock, 2)
-
 def get_daily_evalutation(code):
     # 갖고와서 뿌려주기
     sql = "select date, daily_proper_price from daily_evalutation where code = %s and date >= %s"
@@ -386,3 +322,9 @@ def get_daily_evalutation(code):
 
     return process_data.daily_evalu(data)
 
+def findDailyIndicator(code):
+    sql = "select date, per, pbr, psr from stock_marcap where code = %s and date >= %s"
+    curs.execute(sql, (code, b4year))
+    data = list(curs.fetchall())
+
+    return process_data.daily_indicator(data)

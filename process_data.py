@@ -152,3 +152,12 @@ def daily_evalu(datas):
         dic["value"].append(v)
     
     return dic
+
+# 기업의 1년 per, pbr, psr
+def daily_indicator(datas):
+    dic = defaultdict(list)
+
+    for date, per, pbr, psr in datas:
+        dic[date].append({"PER": per, "PBR": pbr, "PSR": psr})
+    
+    return dic

@@ -8,20 +8,20 @@ import nest_asyncio
 import stockservice
 import stock_news
 
-##--------------- Eureka 설정 --------------##
+# ##--------------- Eureka 설정 --------------##
 # nest_asyncio.apply()
 
 # async def set_eureka():
 #     my_server_host = "127.0.0.1"
 #     rest_port = 8050
 #     ec.init(eureka_server="http://localhost:8761/eureka",
-#             app_stock-code="stock-service",
+#             app_stock_code="stock-service",
 #             instance_host=my_server_host,
 #             instance_port=rest_port)
 
 # asyncio.run(set_eureka())
 # set_eureka()  
-##------------------------------------------##
+# ##------------------------------------------##
 app = FastAPI()
 
 #서버가 잘 붙었나 확인
@@ -98,16 +98,30 @@ async def stockgraph(stockcode: str):
     res = stockservice.graph2weeks(stockcode)
     return res
 
-#기업의 업종평균 EPS, BPS, ROE (최근 4분기)
+#기업 업종평균 EPS, BPS, ROE (최근 4분기)
 @app.get("/stock/{stockcode}/sector")
 async def stock_sector_ebps(stockcode:str):
     res = stockservice.sector_ebps(stockcode)
     return res
     
-#해당 기업 업종평균 per, pbr, psr (1년치)
+#기업 업종평균 per, pbr, psr (1년치)
 @app.get("/stock/{stockcode}/sector/daily")
 async def stock_sector_pebr(stockcode:str):
     res = stockservice.sector_pebr(stockcode)
+    return res
+
+#기업의 보조지표 EPS, BPS, ROE (최근 4분기)
+@app.get("/stock/{stockcode}/indicator")
+async def stock_indicator(stockcode:str):
+    res = stockservice.find_indicator(stockcode)
+    return res
+
+#TODO
+#기업 보조지표 PER, PBR, PSR (1년치)
+@app.get("/stock/{stockcode}/indicator/daily")
+async def stock_daily_indicator(stockcode:str):
+    res = stockservice.findDailyIndicator(stockcode)
+
     return res
 
 #5년 주가 데이터 (소요시간 4초)
@@ -140,12 +154,6 @@ async def ebitda_graph(stockcode: str, type:str):
     res = stockservice.type2graph(type, stockcode)
     return res
     
-#기업의 보조지표 EPS, BPS, ROE (최근 4분기)
-@app.get("/stock/{stockcode}/indicator")
-async def stock_indicator(stockcode:str):
-    res = stockservice.find_indicator(stockcode)
-    return res
-
 #기업의 적정주가 (분기)
 @app.get("/stock/{stockcode}/evaluation")
 async def stock_evaluation(stockcode: str):
