@@ -116,7 +116,6 @@ async def stock_indicator(stockcode:str):
     res = stockservice.find_indicator(stockcode)
     return res
 
-#TODO
 #기업 보조지표 PER, PBR, PSR (1년치)
 @app.get("/stock/{stockcode}/indicator/daily")
 async def stock_daily_indicator(stockcode:str):

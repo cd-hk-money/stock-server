@@ -560,7 +560,7 @@ def cal_evalu():
             sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
             curs.execute(sql, (eval1, eval2, code, datas[i][0]))
 
-#적정주가 일일 계산
+#적정주가 일일 계산 초회 세팅용
 # 계산식 : EPS * PBR/PER
 def cal_daily_evalu():
     for code in code_list:
@@ -619,4 +619,58 @@ def cal_daily_evalu():
             conn.commit()
         else:
             print("최근 1년치의 EPS가 없어 계산 불가")
-    
+
+# 적정주가 마지막 업데이트 날짜
+def evalu_lastday(code):
+    sql = "select date from daily_evalutation where code = %s order by date DESC limit 1"
+    curs.execute(sql, code)
+    data = curs.fetchall()
+
+    if len(data) == 0:
+        return False
+
+    date = datetime.strptime(data[0][0], "%Y-%m-%d")
+    date += timedelta(days=1)
+
+    return datetime.strftime(date, "%Y-%m-%d") 
+
+# 일일 적정주가 업데이트용 
+def daily_evalu_update():
+    for code in code_list:
+        sql = "select date, eps from stock_indicator where code = %s ORDER BY date DESC limit 4"
+        curs.execute(sql, code)
+        datas = curs.fetchall()
+
+        #1년치 재무제표가 없다면 구할 수 없다.
+        if len(datas) < 4:
+            print("잘못된 기업명 or 데이터가 없다", code)
+            continue
+
+        eps = datas[3][1] + datas[2][1] + datas[1][1] + datas[0][1]
+            
+        #업데이트할 날짜 범위를 구하자
+        tmp = evalu_lastday(code)
+        if tmp == False:
+            continue
+        start = tmp
+        end = std_day()
+
+        sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
+        curs.execute(sql, (code, start, end))
+        datas2 = list(curs.fetchall())
+
+        for data in datas2:
+            if data[2] == 0 or data[1] == 0:
+                print("계산할 수 없습니다. can't devide zero ")
+                continue
+
+            v = round(eps * ((data[2] / data[1]) * 100), 1)
+
+            sql = "INSERT INTO daily_evalutation (date, code, daily_proper_price, evalutation_score) values(%s, %s, %s, %s) \
+            ON DUPLICATE KEY UPDATE daily_proper_price = %s, evalutation_score = %s"
+            # sql = "UPDATE daily_evalutation SET daily_proper_price = %s, evalutation_score= %s where date = %s and code = %s"
+            curs.execute(sql, (data[0], code, v, 0, v, 0))
+            conn.commit()
+
+
+        print(code + "is OK")
