@@ -18,5 +18,5 @@ import pymysql
 
 # 3. 매일 갱신해야 하는 메소드지만 아직 불안정한 것들
 # state_cal.every_pebr() # 오늘날짜까지 per, pbr, psr update
-# state_cal.sector_pebr() # 이 메소드는 수동으로 날짜를 조절하는중.... 속상하다
+state_cal.sector_pebr() # 이 메소드는 수동으로 날짜를 조절하는중.... 속상하다
  

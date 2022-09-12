@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta as rt
 from pandas import date_range
 import pymysql
 import FinanceDataReader as fdr
+import dataToDb
 import csv
 
 import stockservice
@@ -93,6 +94,19 @@ def std_day():
     data = curs.fetchall()
 
     return data[0][0]
+
+#특정 보조지표 업데이트를 위한 날짜 계산기
+def check_date():
+    f = open("marcap_" + datetime.now().strftime('%Y-%m-%d') + ".csv", 'r', encoding="UTF-8")
+    cr = csv.reader(f)
+    
+    for row in cr:
+        if row[1] == "Code":
+            continue
+        last_update = row[0]
+        break
+
+    return last_update
 
 # code로 재무제표 기반 EPS, BPS, ROE 계산
 def cal_statement():
@@ -193,7 +207,7 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = "2022-08-28"
+    start = check_date()
     end = std_day()
 
     for code in code_list:
@@ -361,9 +375,9 @@ def sector_pebr():
 
     sector_list = list(temp.index.values)
 
-    start = datetime.strptime("2022-08-28", "%Y-%m-%d")
-    end = datetime.strptime("2022-09-04", "%Y-%m-%d")  # 현재 이부분이 수동으로 조절 해야함..
-    # date = std_day()
+    start = check_date()
+    end = std_day() # 현재 이부분이 수동으로 조절 해야함..
+
     # 161개의 업종을 하나씩 순회
     for sector in sector_list:
         data = krx[krx['Sector'] == sector]['Symbol']
@@ -672,5 +686,41 @@ def daily_evalu_update():
             curs.execute(sql, (data[0], code, v, 0, v, 0))
             conn.commit()
 
-
         print(code + "is OK")
+
+# 일일 적정주가와 현재주가를 비교, 계산
+def daily_evalu_score():
+    for code in code_list:
+        sql = "select date, daily_proper_price from daily_evalutation where code = %s order by date"
+        curs.execute(sql, code)
+        datas = list(curs.fetchall())
+
+        if len(datas) == 0:
+            print(code + " 이 종목은 데이터가 없습니다")
+            continue
+
+        start = datas[0][0]
+        end = datas[-1][0]
+
+        sql = "select date, close from stock_marcap where code = %s and date between %s and %s"
+        curs.execute(sql, (code, start, end))
+        datas2 = list(curs.fetchall())
+
+        for value in zip(datas, datas2):
+            v1, v2 = value[0][1], value[1][1]
+            date = value[0][0]
+
+            #(현재주가 / 적정주가) 1 보다 작으면 고평가, 크면 저평가
+            if v1 == 0 or v2 == 0:
+                print(code + " 적정주가가 0이여서 계산불가")
+                continue
+        
+            v = round(v2 / v1, 2)
+            v = int(v * -100) if v < 1 else int(v * 100)
+            
+            sql = 'UPDATE daily_evalutation SET evalutation_score = %s where date = %s and code = %s'
+            curs.execute(sql, (v, date, code))
+            conn.commit()
+            
+        print(code + "OK")
+

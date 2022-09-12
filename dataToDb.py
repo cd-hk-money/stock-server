@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from numpy import NaN, double
+from numpy import double
 import pymysql
 import FinanceDataReader as fdr
 from marcap import marcap_data
@@ -196,7 +196,6 @@ def every_marcap():
     conn.commit()
     f.close()
     conn.close()
-
 
 #KOSPI, S&P500(NYSE), NASDAQ, US채권(1, 5, 10) -> DB
 def daily_total():
