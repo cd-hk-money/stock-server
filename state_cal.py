@@ -574,7 +574,7 @@ def cal_evalu():
             sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
             curs.execute(sql, (eval1, eval2, code, datas[i][0]))
 
-#적정주가 일일 계산 초회 세팅용
+#적정주가 일일 계산 초회 세팅용 (+ 재무재표가 추가된다면)
 # 계산식 : EPS * PBR/PER
 def cal_daily_evalu():
     for code in code_list:
@@ -716,8 +716,7 @@ def daily_evalu_score():
                 continue
         
             v = round(v2 / v1, 2)
-            v = int(v * -100) if v < 1 else int(v * 100)
-            
+            v = (1-v) * -100
             sql = 'UPDATE daily_evalutation SET evalutation_score = %s where date = %s and code = %s'
             curs.execute(sql, (v, date, code))
             conn.commit()

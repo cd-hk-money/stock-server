@@ -97,8 +97,8 @@ def daily_rank():
 def find_recommand():
     dict = defaultdict(list)
 
-    sql = "select code from corp_krx ORDER BY RAND() LIMIT 12"
-    curs.execute(sql)
+    sql = "select code from daily_evalutation where date = %s and evalutation_score between -50 and -30 order by rand() LIMIT 12"
+    curs.execute(sql, last_day)
     datas = curs.fetchall()
 
     for data in datas:
