@@ -200,7 +200,7 @@ def every_marcap():
 #KOSPI, S&P500(NYSE), NASDAQ, US채권(1, 5, 10) -> DB
 def daily_total():
     last_total = datetime.strptime(state_cal.total_day(), "%Y-%m-%d").date() + timedelta(days=1)
-    
+
     df = fdr.DataReader('KS11', last_total)
     df.reset_index(drop = False, inplace = True)
     df = df.values.tolist()
