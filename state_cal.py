@@ -691,7 +691,7 @@ def daily_evalu_update():
 # 일일 적정주가와 현재주가를 비교, 계산
 def daily_evalu_score():
     for code in code_list:
-        sql = "select date, daily_proper_price from daily_evalutation where code = %s order by date"
+        sql = "select date, daily_proper_price from daily_evalutation where code = %s and evalutation_score = 0 order by date"
         curs.execute(sql, code)
         datas = list(curs.fetchall())
 
@@ -722,4 +722,3 @@ def daily_evalu_score():
             conn.commit()
             
         print(code + "OK")
-
