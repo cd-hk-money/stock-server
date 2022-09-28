@@ -14,7 +14,7 @@ import pymysql
 # state_cal.union_table()
 
 # 2. 일일 종합 지수 최신화 (KOSPI, NASDAQ, S&P500, US채권)
-dataToDb.daily_total()
+# dataToDb.daily_total()
 
 # 3. 매일 갱신해야 하는 메소드 22-09-12 일단 날짜 자동화 작업중
 # state_cal.every_pebr() # 오늘날짜까지 per, pbr, psr update (날짜 자동화 O)

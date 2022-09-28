@@ -58,6 +58,7 @@ async def daily_rank():
 @app.get("/daily/recommand")
 async def daily_recommand():
     data = stockservice.find_recommand()
+    print(data)
     return data
 
 #종목 검색 (기본정보)
@@ -166,5 +167,5 @@ async def stock_daily_evaluation(stockcode: str):
     return res
 
 if __name__ == '__main__':
-    uvicorn.run(app="stock-server:app", port=8080, reload=True)
+    uvicorn.run(app="stock-server:app", port=8000, reload=True)
 
