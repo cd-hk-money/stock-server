@@ -327,3 +327,18 @@ def findDailyIndicator(code):
     data = list(curs.fetchall())
 
     return process_data.daily_indicator(data)
+
+def findSimilarstock(code):
+    sql = "select ck.sector, sm.date from corp_krx as ck inner join stock_marcap as sm on ck.code = sm.code where ck.code = %s order by date DESC limit 1"
+    curs.execute(sql, code)
+    data = list(curs.fetchall())
+    
+    sector, date = data[0][0], data[0][1]
+    
+    sql = "select code, name, market, close, changes, changes_ratio from stock_marcap where code in (select code from corp_krx where sector = %s) and date = %s"
+    curs.execute(sql, (sector, date))
+    data = list(curs.fetchall())
+    
+    return process_data.similarStock(data)
+    
+    

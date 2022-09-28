@@ -54,7 +54,7 @@ async def daily_rank():
     data = stockservice.daily_rank()
     return data
 
-#추천종목 (현재는 랜덤으로 최대 12개)
+#추천종목 (저평가 30~50% 12개 기업 랜덤)
 @app.get("/daily/recommand")
 async def daily_recommand():
     data = stockservice.find_recommand()
@@ -93,6 +93,12 @@ async def stocknews(stockcode: str):
     res = stock_news.crawl_news(stockcode)
     return res
 
+#유사 종목 (기준 1. 같은 업종, 2. 비슷한 평가지수)
+@app.get("/stock/{stockcode}/similar")
+async def similarStock(stockcode: str):
+    res = stockservice.findSimilarstock(stockcode)
+    return res
+
 #2주 주가 데이터 (시간 벌기용)
 @app.get("/stock/{stockcode}/price")
 async def stockgraph(stockcode: str):
@@ -121,7 +127,6 @@ async def stock_indicator(stockcode:str):
 @app.get("/stock/{stockcode}/indicator/daily")
 async def stock_daily_indicator(stockcode:str):
     res = stockservice.findDailyIndicator(stockcode)
-
     return res
 
 #5년 주가 데이터 (소요시간 4초)
