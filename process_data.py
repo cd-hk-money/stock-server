@@ -164,7 +164,7 @@ def daily_indicator(datas):
 
 # # 유사종목 key, value 맞춰주기
 def similarStock(datas):
-    dic = []
+    dic = defaultdict()
     
     for code, name, market, close, changes, changes_ratio in datas:
         dic.append({"code":code, "Nmae": name, "Market": market, "close": close, "changes": changes, "changes_ratio":changes_ratio})
