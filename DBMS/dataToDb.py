@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from numpy import double
+import db
 import FinanceDataReader as fdr
-from stock_config.db import SessionLocal
+import os, csv, schedule, sys, state_cal
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
 from marcap import marcap_data
-import csv
-import schedule
-import os
-import DBMS.state_cal as state_cal
+
 
 # KRXstock_List() : KOSPI 상장(상품 포함) & 순수 기업 리스트 DB
 # marcap_List() : 1995 ~ 현재 모든 marcap 약 1200만개
@@ -15,7 +15,7 @@ import DBMS.state_cal as state_cal
 # stock_statement() : 재무제표 DB
 
 # DB 연결
-conn = SessionLocal()
+conn = db.SessionLocal()
 
 # 매일 할 일 (아침 7시 세팅)
 #-----------------------------------------------------------------------------------#
@@ -36,7 +36,6 @@ def every_do():
         every_marcap()
         # state_cal.union_table()
 
-    
 # schedule.every().day.at("07:00").do(every_do)
 #-----------------------------------------------------------------------------------#
 

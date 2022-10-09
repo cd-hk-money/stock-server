@@ -1,15 +1,13 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta as rt
 from pandas import date_range
-import pymysql
 import FinanceDataReader as fdr
-import csv
+import csv, db, sys, os
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
-import service.stockservice as stockservice
+from service import stockservice
 
-conn = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="1234", db="capstone", charset="utf8")
-curs = conn.cursor()
-conn.commit()
+conn = db.SessionLocal()
 
 # 사용 할 자료
 today = datetime.today().strftime("%Y-%m-%d")
@@ -19,8 +17,7 @@ code_list = [] # 기업 코드 리스트
 # 상장된 기업의 코드 리스트 생성
 def find_code():
     sql = "select code from corp_krx"
-    curs.execute(sql)
-    temp = list(curs.fetchall())
+    temp = list(conn.execute(sql).fetchall())
 
     for code in temp:
         code_list.append(code[0])
@@ -33,8 +30,8 @@ def report_cal():
         for year in range(2021, 2023):
             sql = "select * from stock_statements_origin where code = %s and date like %s"
 
-            curs.execute(sql, (code, str(year) + "%"))
-            temp = list(curs.fetchall())
+            conn.execute(sql, (code, str(year) + "%"))
+            temp = list(conn.execute(sql).fetchall())
 
             datas = []
             for val in temp:
@@ -77,7 +74,7 @@ def report_cal():
                 current_asset, profit, profit_non, revenue, cash, depriciation, ebitda, gross_margin) \
                 values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-                curs.execute(sql, (code, date, report_type, asset, equity, equity_non, liability, current_asset,\
+                conn.execute(sql, (code, date, report_type, asset, equity, equity_non, liability, current_asset,\
                     profit, profit_non, revenue, cash, depriciation, ebitda, gross_margin))
 
                 print(code + " " + date + " ok")
@@ -89,8 +86,7 @@ def report_cal():
 def std_day():
     sql = "select s.date from stock_marcap as s ORDER BY date DESC limit 1"
 
-    curs.execute(sql)
-    data = curs.fetchall()
+    data = conn.execute(sql).fetchall()
 
     return data[0][0]
 
@@ -114,8 +110,7 @@ def cal_statement():
     for code in code_list:
         sql = "SELECT stocks FROM stock_marcap where code like %s and date = %s"
 
-        curs.execute(sql, (code[:5]+"%", last_day))
-        datas = curs.fetchall()
+        datas = conn.execute(sql, (code[:5]+"%", last_day)).fetchall()
 
         if len(datas) == 0:
             # 값이 안 긁히면 거래정지 or 상장폐지
@@ -128,8 +123,7 @@ def cal_statement():
         sql = "SELECT code, date, type, equity, equity_non, profit, profit_non \
                 from stock_statements where code = %s and date >= 2020-12"
         
-        curs.execute(sql, code)
-        datas = list(curs.fetchall())
+        datas = list(conn.execute(sql, code).fetchall())
 
         datas.sort(key = lambda x : x[1], reverse=True) # 내림차순 정렬
 
@@ -158,7 +152,7 @@ def cal_statement():
             sql = "INSERT IGNORE INTO stock_indicator (code, date, type, eps, bps, roe) \
                 values (%s, %s, %s, %s, %s, %s)"
 
-            curs.execute(sql, (code, datas[i][1], datas[i][2], eps, bps, roe))
+            conn.execute(sql, (code, datas[i][1], datas[i][2], eps, bps, roe))
             print(code + " " + str(cnt) + " OK")
         cnt += 1
 
@@ -169,8 +163,7 @@ def cal_statement():
 def pebr_statement():
     for code in code_list:
         sql = "Select date, eps, bps from stock_indicator where code = %s"
-        curs.execute(sql, code)
-        indi = list(curs.fetchall())
+        indi = list(conn.execute(sql, code).fetchall())
 
         if len(indi) == 0:
             # 값이 안 긁히면 거래정지 or 상장폐지
@@ -183,8 +176,7 @@ def pebr_statement():
             sql = "Select date, close, marcap from stock_marcap where code = %s and date between %s and %s"
             print(start, end)
 
-            curs.execute(sql, (code, start, end))
-            marcaps = list(curs.fetchall())
+            marcaps = list(conn.execute(sql, (code, start, end)).fetchall())
         
             #계산에 사용할 eps, bps
             eps = indi[i][1] + indi[i-1][1] + indi[i-2][1] + indi[i-3][1]
@@ -198,7 +190,7 @@ def pebr_statement():
                 pbr = round(close / bps, 1)
 
                 sql = "UPDATE stock_marcap SET per = %s, pbr = %s where code = %s and date = %s"                        
-                curs.execute(sql, (per, pbr, code, date))
+                conn.execute(sql, (per, pbr, code, date))
                 print(code + " " + date + " UPDATE OK")
 
     conn.commit()
@@ -212,8 +204,7 @@ def every_pebr():
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
         sql = "Select eps, bps from stock_indicator where code = %s ORDER BY date DESC limit 4"
-        curs.execute(sql, code)
-        temp = curs.fetchall()
+        temp = conn.execute(sql, code).fetchall()
         
         if len(temp) == 0:
             print(code + " 이 기업은 재무제표가 없습니다 ...")
@@ -224,8 +215,7 @@ def every_pebr():
 
         # 마지막 재무제표에서 매출액 뽑아오기
         sql = "Select revenue from stock_statements where code = %s and date = '2022-03'"
-        curs.execute(sql, code)
-        temp = curs.fetchall()
+        temp = conn.execute(sql, code).fetchall()
         
         if len(temp) == 0:
             print(code + " 이 기업의 마지막 재무제표는 매출액이 없어요")
@@ -235,8 +225,7 @@ def every_pebr():
 
         # 종가, 시총 뽑아오기
         sql = "Select date, close, marcap from stock_marcap where code = %s and date between %s and %s"
-        curs.execute(sql, (code, start, end))
-        temp = curs.fetchall()
+        temp = conn.execute(sql, (code, start, end)).fetchall()
         temp = list(temp)
         
         # PER, PBR, PSR 한번에 우겨넣기
@@ -248,7 +237,7 @@ def every_pebr():
                 pbr = close / bps if bps != 0 else 0
                 psr = marcap / rev if rev != 0 else 0
                 sql = "Update stock_marcap SET per = %s, pbr = %s, psr = %s where code = %s and date = %s"
-                curs.execute(sql, (per, pbr, psr, code, date))
+                conn.execute(sql, (per, pbr, psr, code, date))
                 
                 print(code + " " + date + " OK")
     
@@ -263,8 +252,7 @@ def psr_statement():
     
     for code in code_list:
         sql = "select date, revenue from stock_statements where code = %s and date > 2020-01"
-        curs.execute(sql, code)
-        temp = curs.fetchall()
+        temp = conn.execute(sql, code).fetchall()
         
         if len(temp) == 0:
             print("재무제표가 없어요 ㅠㅠ")
@@ -275,8 +263,7 @@ def psr_statement():
         
         
         sql = "select date, marcap from stock_marcap where code = %s and date between %s and %s"
-        curs.execute(sql, (code, start, end))
-        temp = curs.fetchall()
+        temp = conn.execute(sql, (code, start, end)).fetchall()
         
         if len(temp) == 0:
             print("2020년 이전에 상장폐지 했어요")
@@ -298,7 +285,7 @@ def psr_statement():
                     psr = 0
             
                 sql = "UPDATE stock_marcap SET psr = %s where code = %s and date = %s"
-                curs.execute(sql, (psr, code, marc[i][0]))
+                conn.execute(sql, (psr, code, marc[i][0]))
                 print(code + " " + marc[i][0] + " OK")
                 cnt += 1
         
@@ -309,8 +296,7 @@ def psr_statement():
 # 무식한 ver
 def union_table():
     sql = "SELECT distinct code FROM stock_marcap_old"
-    curs.execute(sql)
-    temp = curs.fetchall()
+    temp = conn.execute(sql).fetchall()
 
     codes = []
     for data in temp:
@@ -325,8 +311,7 @@ def union_table():
         for date in dates:
             sql = "SELECT * from stock_marcap_old where code = %s and date = %s"
 
-            curs.execute(sql, (code, date))
-            temp = curs.fetchall()
+            temp = conn.execute(sql, (code, date)).fetchall()
 
             if len(temp) == 0: 
                 print("주말 or 자연재해") 
@@ -351,7 +336,7 @@ def union_table():
                  high, low, volume, amount, marcap, stocks, per, pbr, psr)\
                      values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             
-            curs.execute(sql, (date, code, name, market, close, changes, changes_ratio, open, high, low, volume, amount, marcap, stocks, per, pbr, psr))
+            conn.execute(sql, (date, code, name, market, close, changes, changes_ratio, open, high, low, volume, amount, marcap, stocks, per, pbr, psr))
             print(date + " " + code + " " + str(cnt) + " OK")
         cnt += 1
     conn.commit()
@@ -361,8 +346,7 @@ def union_table():
 def total_day():
     sql = "select s.date from daily_total as s ORDER BY date DESC limit 1"
 
-    curs.execute(sql)
-    data = curs.fetchall()
+    data = conn.execute(sql).fetchall()
 
     return data[0][0]
 
@@ -388,8 +372,7 @@ def sector_pebr():
             for code in data:
                 # 업종 평균 PER, PBR, PSR 을 구하려면 쿼리문이 이게 최선일까?
                 sql = "select per, pbr, psr from stock_marcap where code = %s and date = %s"
-                curs.execute(sql, (code, date))
-                temp = curs.fetchall()
+                temp = conn.execute(sql, (code, date)).fetchall()
                 
                 temp = list(temp)
                 if len(temp) == 0:
@@ -411,7 +394,7 @@ def sector_pebr():
             
             sql = "INSERT INTO stock_sector_daily (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
             # sql = "UPDATE stock_sector SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
-            curs.execute(sql, (date, sector, per, pbr, psr))
+            conn.execute(sql, (date, sector, per, pbr, psr))
             print(sector, date, " OK")
             
     conn.commit()
@@ -437,8 +420,7 @@ def sector_indicator():
             N = len(data)
             for code in data:
                 sql = "select eps, bps, roe from stock_indicator where code = %s and date = %s"
-                curs.execute(sql, (code, std))
-                q = list(curs.fetchall())
+                q = list(conn.execute(sql, (code, std)).fetchall())
 
                 if len(q) == 0:
                     N -= 1
@@ -455,7 +437,7 @@ def sector_indicator():
             
             # sql = "INSERT INTO stock_sector (date, sector, sector_eps, sector_bps, sector_roe) values (%s, %s, %s, %s, %s)"
             sql = "UPDATE stock_sector SET sector_eps = %s, sector_bps = %s, sector_roe = %s where date = %s and sector = %s"
-            curs.execute(sql, (eps, bps, roe, std, sector))
+            conn.execute(sql, (eps, bps, roe, std, sector))
             print(sector + " OK")
             start += rt(months=3)
     
@@ -465,8 +447,7 @@ def sector_indicator():
 def cal_epsRate():
     for code in code_list:
         sql = "select date, eps from stock_indicator where code = %s"
-        curs.execute(sql, code)
-        datas = list(curs.fetchall())
+        datas = list(conn.execute(sql, code).fetchall())
         
         for i in range(1, len(datas)):
             if datas[i][1] == 0 or datas[i-1][1] == 0:
@@ -475,7 +456,7 @@ def cal_epsRate():
             eps_rate = round(((datas[i][1] - datas[i-1][1]) / datas[i-1][1]) * 100, 1)
             date = datas[i][0]
             sql = "UPDATE stock_indicator SET eps_increase = %s where code = %s and date = %s"
-            curs.execute(sql, (eps_rate, code, date))
+            conn.execute(sql, (eps_rate, code, date))
 
         print(code + " is OK")
     
@@ -486,8 +467,7 @@ def cal_epsRate():
 def cal_pegr():
     for code in code_list:
         sql = "select date, eps_increase from stock_indicator where code = %s"    
-        curs.execute(sql, code)
-        datas = list(curs.fetchall())[1:]
+        datas = list(conn.execute(sql, code).fetchall())[1:]
         
         if len(datas) == 0:
             print("재무제표가 없는 기업입니다")
@@ -497,8 +477,7 @@ def cal_pegr():
             date = data[0] + "-31"
             sql = "select per from stock_marcap where code = %s and date <= %s ORDER BY date DESC limit 1"
 
-            curs.execute(sql, (code, date))
-            temp = list(curs.fetchall())
+            temp = list(conn.execute(sql, (code, date)).fetchall())
 
             if len(temp) == 0:
                 print("per이 없어용")
@@ -513,7 +492,7 @@ def cal_pegr():
             pegr = round(per / data[1], 1)
 
             sql = "UPDATE stock_indicator SET pegr = %s where code = %s and date = %s"
-            curs.execute(sql, (pegr, code, data[0]))
+            conn.execute(sql, (pegr, code, data[0]))
             
         print(code + " is OK")
 
@@ -524,8 +503,7 @@ def cal_pegr():
 def cal_evalu():
     for code in code_list:
         sql = "select date, eps, roe from stock_indicator where code = %s ORDER BY date"
-        curs.execute(sql, code)
-        datas = curs.fetchall()
+        datas = conn.execute(sql, code).fetchall()
 
         if len(datas) == 0:
             print("잘못된 기업명 or 데이터가 없다")
@@ -548,8 +526,7 @@ def cal_evalu():
                     
             # S-Rim 적정주가
             sql = "select equity, equity_non from stock_statements where code = %s and date = %s"
-            curs.execute(sql, (code, datas[i][0]))
-            datas2 = curs.fetchall()
+            datas2 = conn.execute(sql,  (code, datas[i][0])).fetchall()
             conn.commit()
 
             equity = datas2[0][0] - datas2[0][1] # 자본총계 (지배)
@@ -557,8 +534,7 @@ def cal_evalu():
             
             # 보통주 + 우선주
             sql = "select stocks from stock_marcap where code like %s and date = %s"
-            curs.execute(sql, (code[:5]+"%", stockservice.last_day))
-            datas3 = curs.fetchall()
+            datas3 = conn.execute(sql, (code[:5]+"%", stockservice.last_day)).fetchall()
 
             if len(datas3) == 0:
                 # 값이 안 긁히면 거래정지 or 상장폐지
@@ -571,15 +547,14 @@ def cal_evalu():
             eval2 = round((equity * (s_rim_roe / rate)) / total_stock)
 
             sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
-            curs.execute(sql, (eval1, eval2, code, datas[i][0]))
+            conn.execute(sql, (eval1, eval2, code, datas[i][0]))
 
 #적정주가 일일 계산 초회 세팅용 (+ 재무재표가 추가된다면)
 # 계산식 : EPS * PBR/PER
 def cal_daily_evalu():
     for code in code_list:
         sql = "select date, eps from stock_indicator where code = %s ORDER BY date"
-        curs.execute(sql, code)
-        datas = curs.fetchall()
+        datas = conn.execute(sql, code).fetchall()
 
         if len(datas) == 0:
             print("잘못된 기업명 or 데이터가 없다")
@@ -594,8 +569,7 @@ def cal_daily_evalu():
             end = datas[i+1][0] + "-00"
 
             sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
-            curs.execute(sql, (code, start, end))
-            datas2 = list(curs.fetchall())
+            datas2 = list(conn.execute(sql, (code, start, end)).fetchall())
 
             for data in datas2:
                 if data[2] == 0 or data[1] == 0:
@@ -605,7 +579,7 @@ def cal_daily_evalu():
                 v = round(eps * ((data[2] / data[1]) * 100))
 
                 sql = "INSERT INTO daily_evaluation (date, code, daily_proper_price) values(%s, %s, %s)"
-                curs.execute(sql, (data[0], code, v))
+                conn.execute(sql, (data[0], code, v))
             
             conn.commit()
         
@@ -616,8 +590,7 @@ def cal_daily_evalu():
             end = std_day()
 
             sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
-            curs.execute(sql, (code, start, end))
-            datas3 = list(curs.fetchall())
+            datas3 = list(conn.execute(sql, (code, start, end)).fetchall())
             
             for data in datas3:
                 if data[2] == 0 or data[1] == 0:
@@ -626,7 +599,7 @@ def cal_daily_evalu():
 
                 v = eps * ((data[2] / data[1]) * 100)
                 sql = "INSERT INTO daily_evaluation (date, code, daily_proper_price) values(%s, %s, %s)"
-                curs.execute(sql, (data[0], code, v))
+                conn.execute(sql, (data[0], code, v))
                 print(data[0] + " " + code + " OK")
 
             conn.commit()
@@ -636,8 +609,7 @@ def cal_daily_evalu():
 # 적정주가 마지막 업데이트 날짜
 def evalu_lastday(code):
     sql = "select date from daily_evalutation where code = %s order by date DESC limit 1"
-    curs.execute(sql, code)
-    data = curs.fetchall()
+    data = conn.execute(sql, code).fetchall()
 
     if len(data) == 0:
         return False
@@ -651,8 +623,7 @@ def evalu_lastday(code):
 def daily_evalu_update():
     for code in code_list:
         sql = "select date, eps from stock_indicator where code = %s ORDER BY date DESC limit 4"
-        curs.execute(sql, code)
-        datas = curs.fetchall()
+        datas = conn.execute(sql, code).fetchall()
 
         #1년치 재무제표가 없다면 구할 수 없다.
         if len(datas) < 4:
@@ -669,8 +640,7 @@ def daily_evalu_update():
         end = std_day()
 
         sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
-        curs.execute(sql, (code, start, end))
-        datas2 = list(curs.fetchall())
+        datas2 = list(conn.execute(sql, (code, start, end)).fetchall())
 
         for data in datas2:
             if data[2] == 0 or data[1] == 0:
@@ -682,7 +652,7 @@ def daily_evalu_update():
             sql = "INSERT INTO daily_evalutation (date, code, daily_proper_price, evalutation_score) values(%s, %s, %s, %s) \
             ON DUPLICATE KEY UPDATE daily_proper_price = %s, evalutation_score = %s"
             # sql = "UPDATE daily_evalutation SET daily_proper_price = %s, evalutation_score= %s where date = %s and code = %s"
-            curs.execute(sql, (data[0], code, v, 0, v, 0))
+            conn.execute(sql, (data[0], code, v, 0, v, 0))
             conn.commit()
 
         print(code + "is OK")
@@ -691,8 +661,7 @@ def daily_evalu_update():
 def daily_evalu_score():
     for code in code_list:
         sql = "select date, daily_proper_price from daily_evalutation where code = %s and evalutation_score = 0 order by date"
-        curs.execute(sql, code)
-        datas = list(curs.fetchall())
+        datas = list(conn.execute(sql, code).fetchall())
 
         if len(datas) == 0:
             print(code + " 이 종목은 데이터가 없습니다")
@@ -702,8 +671,7 @@ def daily_evalu_score():
         end = datas[-1][0]
 
         sql = "select date, close from stock_marcap where code = %s and date between %s and %s"
-        curs.execute(sql, (code, start, end))
-        datas2 = list(curs.fetchall())
+        datas2 = list(conn.execute(sql, (code, start, end)).fetchall())
 
         for value in zip(datas, datas2):
             v1, v2 = value[0][1], value[1][1]
@@ -717,7 +685,7 @@ def daily_evalu_score():
             v = round(v2 / v1, 2)
             v = (1-v) * -100
             sql = 'UPDATE daily_evalutation SET evalutation_score = %s where date = %s and code = %s'
-            curs.execute(sql, (v, date, code))
+            conn.execute(sql, (v, date, code))
             conn.commit()
             
         print(code + "OK")
