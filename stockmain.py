@@ -4,8 +4,8 @@ import py_eureka_client.eureka_client as ec
 import uvicorn
 import asyncio
 import nest_asyncio
-import stockservice
-import stocknews
+import service.stockservice as stockservice
+import service.stocknews as stocknews
 
 # ##--------------- Eureka 설정 --------------##
 # nest_asyncio.apply()

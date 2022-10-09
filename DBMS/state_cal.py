@@ -3,10 +3,9 @@ from dateutil.relativedelta import relativedelta as rt
 from pandas import date_range
 import pymysql
 import FinanceDataReader as fdr
-import DBMS.dataToDb as dataToDb
 import csv
 
-import stockservice
+import service.stockservice as stockservice
 
 conn = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="1234", db="capstone", charset="utf8")
 curs = conn.cursor()

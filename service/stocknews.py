@@ -3,7 +3,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 
-def crawl_news(name):
+def crawl_news(name): 
     #1. 네이버 증권에 Request 요청
     url = "https://finance.naver.com/news/news_search.naver?q={q}&x=21&y=5"
     q = name

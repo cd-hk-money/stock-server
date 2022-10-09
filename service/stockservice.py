@@ -2,9 +2,8 @@ from config.db import engine
 from collections import defaultdict
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from starlette.responses import JSONResponse
 
-import pymysql, json, process_data
+import service.process_data as process_data
 
 today = datetime.now().strftime("%Y-%m-%d") # 오늘
 stdday = (datetime.now() - relativedelta(years=5)).strftime("%Y-%m-%d") # 5년전 오늘

@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from numpy import double
-import pymysql
 import FinanceDataReader as fdr
+from stock_config.db import SessionLocal
 from marcap import marcap_data
 import csv
 import schedule
@@ -15,9 +15,7 @@ import DBMS.state_cal as state_cal
 # stock_statement() : 재무제표 DB
 
 # DB 연결
-conn = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="1234", db="capstone", charset="utf8")
-curs = conn.cursor()
-conn.commit()
+conn = SessionLocal()
 
 # 매일 할 일 (아침 7시 세팅)
 #-----------------------------------------------------------------------------------#
@@ -79,7 +77,7 @@ def stock_statement():
              current_asset, profit, profit_non, revenue, cash, depriciation, ebitda, gross_margin) \
              values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-        curs.execute(sql, (code, date, report_type, asset, equity, equity_non, liability, current_asset, profit, profit_non, revenue, cash, depriciation, ebitda, gross_margin))
+        conn.execute(sql, (code, date, report_type, asset, equity, equity_non, liability, current_asset, profit, profit_non, revenue, cash, depriciation, ebitda, gross_margin))
 
         print(code + " " + report_type + " OK")
 
@@ -107,12 +105,12 @@ def KRXstock_List():
         
         # KRX 전체
         sql = "INSERT IGNORE INTO stock_krx (code, market, name, sector, industry) values(%s, %s, %s, %s, %s)"
-        curs.execute(sql, (Code, Market, Name, Sector, Industry))
+        conn.execute(sql, (Code, Market, Name, Sector, Industry))
         
         # 순수 상장 기업
         if Sector != "":
             sql = "INSERT IGNORE INTO corp_krx (code, market, name, sector, industry) values(%s, %s, %s, %s, %s)"
-            curs.execute(sql, (Code, Market, Name, Sector, Industry))
+            conn.execute(sql, (Code, Market, Name, Sector, Industry))
     
     conn.commit()
     f.close()
@@ -151,7 +149,7 @@ def marcap_list():
             open, high, low, volume, amount, marcap, stocks) \
                 values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 
-        curs.execute(sql, (date, code, name, market, close, changes, changesRatio, Open, high, low, \
+        conn.execute(sql, (date, code, name, market, close, changes, changesRatio, Open, high, low, \
             volume, amount, marcap, stocks))
         
         print(date, "query ok")
@@ -188,7 +186,7 @@ def every_marcap():
             open, high, low, volume, amount, marcap, stocks) \
                 values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 
-        curs.execute(sql, (date, code, name, market, close, changes, changesRatio, Open, high, low, \
+        conn.execute(sql, (date, code, name, market, close, changes, changesRatio, Open, high, low, \
             volume, amount, marcap, stocks))
         
         print(date, "query ok")
@@ -216,7 +214,7 @@ def daily_total():
         changes = row[6]
 
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
 
         print(date + " KOSPI OK")
     
@@ -235,7 +233,7 @@ def daily_total():
         changes = row[6]
 
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " S&P500 OK")
 
     t = "NASDAQ"
@@ -253,7 +251,7 @@ def daily_total():
         changes = row[6]
 
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " NASDAQ OK")
 
     t = "US1YT"
@@ -272,7 +270,7 @@ def daily_total():
         volume = 0 #채권은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US1YT OK")
         
     t = "US5YT"
@@ -291,7 +289,7 @@ def daily_total():
         volume = 0 #채권은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US5YT OK")
         
     t = "US10YT"
@@ -310,7 +308,7 @@ def daily_total():
         volume = 0 #채권은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US10YT OK")
     
     t = "USD/KRW"
@@ -329,7 +327,7 @@ def daily_total():
         volume = 0 #환율은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " USD/KRW OK")
     
     conn.commit()
@@ -353,7 +351,7 @@ def us_bond():
         volume = 0 #채권은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US1YT OK")
         
     t = "US5YT"
@@ -372,7 +370,7 @@ def us_bond():
         volume = 0 #채권은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US5YT OK")
         
     t = "US10YT"
@@ -391,7 +389,7 @@ def us_bond():
         volume = 0 #채권은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " US10YT OK")
     
     conn.commit()
@@ -414,7 +412,7 @@ def usd_krw():
         volume = 0 # 환율은 거래량이 없다
         
         sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        curs.execute(sql, (date, t, close, op, high, low, volume, changes))
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " OK")
     
     conn.commit()
