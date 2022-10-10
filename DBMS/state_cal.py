@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 from service import stockservice
 
-conn = db.SessionLocal()
+conn = db.engine.connect()
 
 # 사용 할 자료
 today = datetime.today().strftime("%Y-%m-%d")
@@ -79,7 +79,7 @@ def report_cal():
 
                 print(code + " " + date + " ok")
 
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 # 주말 = 주가 정보 X 따라서 가장 마지막 주가 날짜 갖고오기
@@ -156,7 +156,7 @@ def cal_statement():
             print(code + " " + str(cnt) + " OK")
         cnt += 1
 
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 # PER, PBR 계산
@@ -193,7 +193,7 @@ def pebr_statement():
                 conn.execute(sql, (per, pbr, code, date))
                 print(code + " " + date + " UPDATE OK")
 
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 # PER, PBR, PSR 업데이트용
@@ -241,7 +241,7 @@ def every_pebr():
                 
                 print(code + " " + date + " OK")
     
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 
@@ -289,7 +289,7 @@ def psr_statement():
                 print(code + " " + marc[i][0] + " OK")
                 cnt += 1
         
-    conn.commit()
+    # conn.commit()
     conn.close()
     
 # stock_marcap 테이블
@@ -332,14 +332,14 @@ def union_table():
 
             per, pbr, psr = 0, 0, 0
 
-            sql = "INSERT INTO stock_marcap (date, code, name, market, close, changes, changes_ratio, open,\
+            sql = "INSERT IGNORE INTO stock_marcap (date, code, name, market, close, changes, changes_ratio, open,\
                  high, low, volume, amount, marcap, stocks, per, pbr, psr)\
                      values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             
             conn.execute(sql, (date, code, name, market, close, changes, changes_ratio, open, high, low, volume, amount, marcap, stocks, per, pbr, psr))
             print(date + " " + code + " " + str(cnt) + " OK")
         cnt += 1
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 #daily_total 전용 마지막 날짜 구하기
@@ -397,7 +397,7 @@ def sector_pebr():
             conn.execute(sql, (date, sector, per, pbr, psr))
             print(sector, date, " OK")
             
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 #업종평균 EPS, BPS, ROE (최적화 필요)
@@ -441,7 +441,7 @@ def sector_indicator():
             print(sector + " OK")
             start += rt(months=3)
     
-    conn.commit()
+    # conn.commit()
 
 # EPS 증가율 계산
 def cal_epsRate():
@@ -460,7 +460,7 @@ def cal_epsRate():
 
         print(code + " is OK")
     
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 # PEGR 계산
@@ -496,7 +496,7 @@ def cal_pegr():
             
         print(code + " is OK")
 
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 # 적정주가 (분기) 계산
@@ -509,7 +509,7 @@ def cal_evalu():
             print("잘못된 기업명 or 데이터가 없다")
             continue
 
-        conn.commit()
+        # conn.commit()
         
         for i in range(3, len(datas)):
             eps = datas[i][1] + datas[i-1][1] + datas[i-2][1] + datas[i-3][1]
@@ -527,7 +527,7 @@ def cal_evalu():
             # S-Rim 적정주가
             sql = "select equity, equity_non from stock_statements where code = %s and date = %s"
             datas2 = conn.execute(sql,  (code, datas[i][0])).fetchall()
-            conn.commit()
+            # conn.commit()
 
             equity = datas2[0][0] - datas2[0][1] # 자본총계 (지배)
             rate = 10.2 # 한국 신용평가의 BBB- 등급 채권의 5년 수익률 
@@ -581,7 +581,7 @@ def cal_daily_evalu():
                 sql = "INSERT INTO daily_evaluation (date, code, daily_proper_price) values(%s, %s, %s)"
                 conn.execute(sql, (data[0], code, v))
             
-            conn.commit()
+            # conn.commit()
         
         #일단 최근자의 예측을 위해 마지막 재무제표 기준 계산
         if len(datas) >= 4:
@@ -602,7 +602,7 @@ def cal_daily_evalu():
                 conn.execute(sql, (data[0], code, v))
                 print(data[0] + " " + code + " OK")
 
-            conn.commit()
+            # conn.commit()
         else:
             print("최근 1년치의 EPS가 없어 계산 불가")
 
@@ -653,7 +653,7 @@ def daily_evalu_update():
             ON DUPLICATE KEY UPDATE daily_proper_price = %s, evalutation_score = %s"
             # sql = "UPDATE daily_evalutation SET daily_proper_price = %s, evalutation_score= %s where date = %s and code = %s"
             conn.execute(sql, (data[0], code, v, 0, v, 0))
-            conn.commit()
+            # conn.commit()
 
         print(code + "is OK")
 
@@ -686,6 +686,6 @@ def daily_evalu_score():
             v = (1-v) * -100
             sql = 'UPDATE daily_evalutation SET evalutation_score = %s where date = %s and code = %s'
             conn.execute(sql, (v, date, code))
-            conn.commit()
+            # conn.commit()
             
         print(code + "OK")

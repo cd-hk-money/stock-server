@@ -15,7 +15,7 @@ from marcap import marcap_data
 # stock_statement() : 재무제표 DB
 
 # DB 연결
-conn = db.SessionLocal()
+conn = db.engine.connect()
 
 # 매일 할 일 (아침 7시 세팅)
 #-----------------------------------------------------------------------------------#
@@ -153,7 +153,6 @@ def marcap_list():
         
         print(date, "query ok")
         
-    conn.commit()
     f.close()
     conn.close()    
 
@@ -190,7 +189,6 @@ def every_marcap():
         
         print(date, "query ok")
         
-    conn.commit()
     f.close()
     conn.close()
 
@@ -329,7 +327,7 @@ def daily_total():
         conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " USD/KRW OK")
     
-    conn.commit()
+    # conn.commit()
     conn.close()
 
 # 미국 국채 초기 세팅용 (2017-01-01 ~ 현재)
