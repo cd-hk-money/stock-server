@@ -10,7 +10,7 @@ import pymysql
 # dataToDb.us_bond()
 
 # 1. 일일 주가 최신화, stock_marcap_old, stock_marcap 2개 DB UPDATE
-dataToDb.every_do()
+# dataToDb.every_do()
 # state_cal.union_table()
 
 # 2. 일일 종합 지수 최신화 (KOSPI, NASDAQ, S&P500, US채권)

@@ -31,42 +31,42 @@ def root():
 #------------------------하위 주가 관련 API---------------------#
 #자동완성 {코드 : 기업} (선물 X)
 @app.get("/krx-corps")
-def all_code():
+async def all_code():
     data = stockservice.match_corp()
     return data
     
 #자동완성 {코드 : 기업} (선물 O)
 @app.get("/krx")
-def all_krx():
+async def all_krx():
     data = stockservice.match_krx()
     return data
 
 #KOSPI, NASDAQ, S&P500 종합 지수, US 채권 수익률, 환율(USD/KRW)
 @app.get("/daily/trend")
-def daily_total():
+async def daily_total():
     data = stockservice.find_daily_total()
     return data
 
 @app.get("/daily/market")
-def daily_market():
+async def daily_market():
     data = stockservice.getDailyMarket()
     return data
     
 #상위종목 시총, 변동률, 거래대금 TOP 50
 @app.get("/daily/rank")
-def daily_rank():
+async def daily_rank():
     data = stockservice.daily_rank()
     return data
 
 #추천종목 (저평가 30~50% 12개 기업 랜덤)
 @app.get("/daily/recommand")
-def daily_recommand():
+async def daily_recommand():
     data = stockservice.find_recommand()
     return data
 
 #종목 검색 (기본정보)
 @app.get("/stock/{stockcode}")
-def stockinfo(stockcode: str):
+async def stockinfo(stockcode: str):
     data = stockservice.stock_info(stockcode)
 
     return JSONResponse({
@@ -92,85 +92,85 @@ def stockinfo(stockcode: str):
 
 #종목 뉴스
 @app.get("/stock/{stockcode}/news")
-def stocknews(stockcode: str):
+async def stockNews(stockcode: str):
     res = stocknews.crawl_news(stockcode)
     return res
 
 #유사 종목 (기준 1. 같은 업종, 2. 비슷한 평가지수)
 @app.get("/stock/{stockcode}/similar")
-def similarStock(stockcode: str):
+async def similarStock(stockcode: str):
     res = stockservice.findSimilarstock(stockcode)
     return res
 
 #2주 주가 데이터
 @app.get("/stock/{stockcode}/price")
-def stockgraph(stockcode: str):
+async def stockgraph(stockcode: str):
     res = stockservice.graph2weeks(stockcode)
     return res
 
 #기업 업종평균 EPS, BPS, ROE (최근 4분기)
 @app.get("/stock/{stockcode}/sector")
-def stock_sector_ebps(stockcode:str):
+async def stock_sector_ebps(stockcode:str):
     res = stockservice.sector_ebps(stockcode)
     return res
     
 #기업 업종평균 per, pbr, psr (1년치)
 @app.get("/stock/{stockcode}/sector/daily")
-def stock_sector_pebr(stockcode:str):
+async def stock_sector_pebr(stockcode:str):
     res = stockservice.sector_pebr(stockcode)
     return res
 
 #기업의 보조지표 EPS, BPS, ROE (최근 4분기)
 @app.get("/stock/{stockcode}/indicator")
-def stock_indicator(stockcode:str):
+async def stock_indicator(stockcode:str):
     res = stockservice.find_indicator(stockcode)
     return res
 
 #기업 보조지표 PER, PBR, PSR (1년치)
 @app.get("/stock/{stockcode}/indicator/daily")
-def stock_daily_indicator(stockcode:str):
+async def stock_daily_indicator(stockcode:str):
     res = stockservice.findDailyIndicator(stockcode)
     return res
 
 #5년 주가 데이터
 @app.get("/stock/{stockcode}/years-price")
-def detailgraph(stockcode: str):
+async def detailgraph(stockcode: str):
     res = stockservice.graph5year(stockcode)
     return res
 
 #5년 거래량 데이터 (소요시간 4초)
 @app.get("/stock/{stockcode}/years-volume")
-def voulumegraph(stockcode: str):
+async def voulumegraph(stockcode: str):
     res = stockservice.graphvolume5year(stockcode)
     return res
 
 #날짜 지정 주가 그래프 (2017-03-30 부터 조회 가능)
 @app.get("/stock/{stockcode}/price/{start}/{end}")
-def custom_graph(stockcode:str, start:str, end:str):
+async def custom_graph(stockcode:str, start:str, end:str):
     res = stockservice.graph_detail(stockcode, start, end)
     return res
 
 #기업의 재무제표 (최근 4분기)
 @app.get("/stock/{stockcode}/statement")
-def stock_statement(stockcode: str):
+async def stock_statement(stockcode: str):
     res = stockservice.find_statement(stockcode)
     return res
 
 #영업이익, 매출액 그래프 type 으로 구분
 @app.get("/stock/{stockcode}/statement/{type}")
-def ebitda_graph(stockcode: str, type:str):
+async def ebitda_graph(stockcode: str, type:str):
     res = stockservice.type2graph(type, stockcode)
     return res
     
 #기업의 적정주가 (분기)
 @app.get("/stock/{stockcode}/evaluation")
-def stock_evaluation(stockcode: str):
+async def stock_evaluation(stockcode: str):
     res = stockservice.get_evalutation(stockcode)
     return res
 
 #기업의 적정주가 (일일)
 @app.get("/stock/{stockcode}/evaluation/daily")
-def stock_daily_evaluation(stockcode: str):
+async def stock_daily_evaluation(stockcode: str):
     res = stockservice.get_daily_evalutation(stockcode)
     return res
 
