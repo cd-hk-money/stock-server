@@ -3,3 +3,5 @@ __pycache__
 .csv
 config.json
 stock-server
+venv
+.vscode

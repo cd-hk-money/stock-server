@@ -47,6 +47,11 @@ def daily_total():
     data = stockservice.find_daily_total()
     return data
 
+@app.get("/daily/market")
+def daily_market():
+    data = stockservice.getDailyMarket()
+    return data
+    
 #상위종목 시총, 변동률, 거래대금 TOP 50
 @app.get("/daily/rank")
 def daily_rank():

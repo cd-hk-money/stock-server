@@ -36,6 +36,30 @@ def findtop(type, datas):
     
     return dic
 
+#오늘의 KOSPI, NASDAQ, S&P500, USD/KRW 수치 변화
+def dailyScore(datas):
+    dic = defaultdict(list)
+    res = dict()
+
+    for data in datas:
+        date, type, value = data
+
+        dic[type].append(value)
+    
+    #타입별 값계산
+    ksp = round((1 - dic["KOSPI"][0] / dic["KOSPI"][-1]) * 100, 1)
+    nas = round((1 - dic["NASDAQ"][0] / dic["NASDAQ"][-1]) * 100, 1)
+    snp = round((1 - dic["S&P500"][0] / dic["S&P500"][-1]) * 100, 1)
+    krwrate = round((1 - dic["USD/KRW"][0] / dic["USD/KRW"][-1]) * 100, 1)
+
+    print(ksp)
+    res["KOSPI"] = "KOSPI는(은) 2주전 보다 {}% 상승 했습니다".format(ksp) if ksp > 0 else "KOSPI는(은) 2주전 보다 {}% 하락 했습니다".format(abs(ksp))
+    res["NASDQ"] = "NASDAQ은(는) 2주전 보다 {}% 상승 했습니다".format(nas) if nas > 0 else "NASDAQ은(는) 2주전 보다 {}% 하락 했습니다.".format(abs(nas))
+    res["S&P500"] = "S&P500은(는) 2주전 보다 {}% 상승 했습니다".format(snp) if snp > 0 else "S&P500은(는) 2주전 보다 {}% 하락 했습니다".format(abs(snp))
+    res["KRW/USD"] = "환율은(는) 2주전 보다 {}% 상승 했습니다".format(krwrate) if krwrate > 0 else "환율은(는) 2주전 보다 {}% 하락 했습니다".format(abs(krwrate))
+
+    return res
+
 #랜덤 추천종목 key, value 매칭
 def matchrecom(datas):
     dic = dict()

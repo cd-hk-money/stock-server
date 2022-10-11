@@ -1,4 +1,5 @@
 from dbms.db import engine
+from sqlalchemy import text
 from collections import defaultdict
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -6,78 +7,94 @@ from dateutil.relativedelta import relativedelta
 import service.process_data as process_data
 
 today = datetime.now().strftime("%Y-%m-%d") # 오늘
+b4week = (datetime.now() - relativedelta(weeks=2)).strftime("%Y-%m-%d") # 2주전 
 stdday = (datetime.now() - relativedelta(years=5)).strftime("%Y-%m-%d") # 5년전 오늘
 b4year = (datetime.now() - relativedelta(years=1)).strftime("%Y-%m-%d") # 1년전 오늘
 b4_3year = (datetime.now() - relativedelta(years=3)).strftime("%Y-%m-%d") # 3년전 오늘
-conn = engine.connect()
 
 def lastday():
-    sql = "select date from stock_marcap ORDER BY date DESC limit 1"
+    conn = engine.connect()
+    sql = text("select date from stock_marcap ORDER BY date DESC limit 1")
     data = conn.execute(sql).fetchall()
-
+    
+    conn.close()
     return data[0][0]
 
 temp = lastday()
 last_day = temp
 
 def match_corp():
-    sql = "select code, name from corp_krx"
+    conn = engine.connect()
+    sql = text("select code, name from corp_krx")
     temp = conn.execute(sql).fetchall()
-
+    conn.close()
     data = process_data.codelist(temp)
 
     return data
 
 def match_krx():
+    conn = engine.connect()
     sql = "select code, name from stock_krx"
     temp = conn.execute(sql).fetchall()
     data = process_data.codelist(temp)
-
+    conn.close()
     return data
 
 def find_daily_total():
-    sql = "Select * from daily_total where date between %s and %s"
-    temp = list(conn.execute(sql, (stdday, today)).fetchall())
+    conn = engine.connect()
+    sql = text("Select * from daily_total where type NOT IN ('US10YT', 'US1YT', 'US5YT') and date between {} and {}".format(stdday, today))
+    temp = list(conn.execute(sql).fetchall())
     data = process_data.dateisidx(temp)
+    conn.close()
+    return data
+
+def getDailyMarket():
+    conn = engine.connect()
+    sql = text("Select date, type, close from daily_total where date between %s and %s")
+    temp = list(conn.execute(sql, (b4week, today)).fetchall())
+    data = process_data.dailyScore(temp)
 
     return data
 
 def daily_rank():
+    conn = engine.connect()
     #시총 TOP10
-    sql = "select * from stock_marcap where date = %s ORDER BY marcap DESC limit 50" 
+    sql = text("select * from stock_marcap where date = %s ORDER BY marcap DESC limit 50")
     data = conn.execute(sql, last_day).fetchall()
 
     dict1 = process_data.findtop("marcap", data)
 
     #떡상 TOP10
-    sql = "select * from stock_marcap where date = %s ORDER BY changes_ratio DESC limit 50" 
+    sql = text("select * from stock_marcap where date = %s ORDER BY changes_ratio DESC limit 50")
     data = conn.execute(sql, last_day).fetchall()
 
     dict2 = process_data.findtop("change_incr", data)
 
     #떡락 TOP 10
-    sql = "select * from stock_marcap where date = %s ORDER BY changes_ratio ASC limit 50" 
+    sql = text("select * from stock_marcap where date = %s ORDER BY changes_ratio ASC limit 50")
     data = conn.execute(sql, last_day).fetchall()
 
     dict3 = process_data.findtop("change_redu", data)
 
     #거래량 TOP 10
-    sql = "select * from stock_marcap where date = %s ORDER BY volume DESC limit 50" 
+    sql = text("select * from stock_marcap where date = %s ORDER BY volume DESC limit 50")
     data = conn.execute(sql, last_day).fetchall()
 
     dict4 = process_data.findtop("volume", data)
     res = dict(dict1, **dict2, **dict3, **dict4)
-
+    conn.close()
     return res
 
 def find_recommand():
+    conn = engine.connect()
     dict = defaultdict(list)
 
-    sql = "select code from daily_evalutation where date = %s and evalutation_score between -50 and -30 order by rand() LIMIT 12"
+    sql = text("select code from daily_evalutation where date = %s and evalutation_score between -50 and -30 order by rand() LIMIT 12")
     datas = conn.execute(sql, last_day).fetchall()
 
     for data in datas:
-        sql = "select code, name, close, changes_ratio from stock_marcap where code = %s and date = %s"
+        print(data)
+        sql = text("select code, name, close, changes_ratio from stock_marcap where code = %s and date = %s")
         temp = conn.execute(sql, (data[0], last_day)).fetchall()
 
         dic = process_data.matchrecom(temp)
@@ -86,9 +103,10 @@ def find_recommand():
     return dict
 
 def stock_info(code):
-    sql = "select sm.*, ck.sector from stock_marcap sm inner join stock_krx as ck \
+    conn = engine.connect()
+    sql = text("select sm.*, ck.sector from stock_marcap sm inner join stock_krx as ck \
         on sm.code = ck.code \
-        where sm.code = %s ORDER BY date DESC limit 1"
+        where sm.code = %s ORDER BY date DESC limit 1")
         
     data = conn.execute(sql, code).fetchall()
 
@@ -99,7 +117,8 @@ def stock_info(code):
     return data
 
 def graph2weeks(code):
-    sql = "select date, close from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -14 DAY) ORDER BY date ASC limit 14"
+    conn = engine.connect()
+    sql = text("select date, close from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -14 DAY) ORDER BY date ASC limit 14")
     data = conn.execute(sql, (code, last_day)).fetchall()
     
     if len(data) == 0:
@@ -115,6 +134,7 @@ def graph2weeks(code):
     return res
 
 def graph5year(code):
+    conn = engine.connect()
     sql = "select date, close from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
     data = conn.execute(sql, (code, last_day)).fetchall()
 
@@ -131,6 +151,7 @@ def graph5year(code):
     return res
 
 def graphvolume5year(code):
+    conn = engine.connect()
     sql = "select date, volume from stock_marcap where code = %s and date >= DATE_ADD(%s, INTERVAL -5 YEAR)"
     data = conn.execute(sql, (code, last_day)).fetchall()
 
@@ -147,6 +168,7 @@ def graphvolume5year(code):
     return res
 
 def graph_detail(code, start, end):
+    conn = engine.connect()
     sql = "select date, close from stock_marcap where code = %s and date between %s and %s"
     data = conn.execute(sql, (code, start, end)).fetchall()
 
@@ -162,24 +184,29 @@ def graph_detail(code, start, end):
     return res
 
 def type2graph(type, code):
+    conn = engine.connect()
     if type == "ebitda":
         sql = "select date, ebitda from stock_statements where code = %s"
     elif type == "asset":
         sql = "select date, asset from stock_statements where code = %s"
     elif type == "equity":
         sql = "select date, equity from stock_statements where code = %s" 
+    elif type == "equity_non":
+        sql = "select date, equity_non from stock_statements where code = %s" 
     elif type == "liability":
         sql = "select date, liability from stock_statements where code = %s"
     elif type == "current_asset":
         sql = "select date, current_asset from stock_statements where code = %s"
     elif type == "profit":
         sql = "select date, profit from stock_statements where code = %s"
+    elif type == "profit_non":
+        sql = "select date, profit_non from stock_statements where code = %s"
     elif type == "revenue":
         sql = "select date, revenue from stock_statements where code = %s"
     elif type == "cash":
         sql = "select date, cash from stock_statements where code = %s"
     elif type == "gross_margin":
-        sql = sql = "select date, gross_margin from stock_statements where code = %s" 
+        sql = "select date, gross_margin from stock_statements where code = %s" 
 
     data = conn.execute(sql, code).fetchall()
 
@@ -196,6 +223,7 @@ def type2graph(type, code):
     return res
 
 def find_statement(code):
+    conn = engine.connect()
     sql = "select * from stock_statements where code = %s ORDER BY date DESC limit 4"
     data = conn.execute(sql, code).fetchall()
     res = process_data.state2dict(data)
@@ -203,6 +231,7 @@ def find_statement(code):
     return res
    
 def find_indicator(code):
+    conn = engine.connect()
     sql = "select * from stock_indicator where code = %s ORDER BY date DESC limit 4"
     data = conn.execute(sql, code).fetchall()
     res = process_data.indi2dict(data)
@@ -211,6 +240,7 @@ def find_indicator(code):
 
 # 기업이 해당하는 업종 평균 PER, PBR, PSR
 def sector_pebr(code):
+    conn = engine.connect()
     sql = "select sector from corp_krx where code = %s"
     data = conn.execute(sql, code).fetchall()
 
@@ -223,6 +253,7 @@ def sector_pebr(code):
     return res
 
 def sector_ebps(code):
+    conn = engine.connect()
     sql = "select sector from corp_krx where code = %s"
     data = conn.execute(sql, code).fetchall()
     sector = data[0][0]
@@ -235,6 +266,7 @@ def sector_ebps(code):
 
 # 기업의 적정주가 목표 4가지
 def get_evalutation(code):
+    conn = engine.connect()
     sql = "select date, proper_price, s_rim from stock_indicator where code = %s order by date DESC limit 12"
     data = list(conn.execute(sql, code).fetchall())
     data.sort(key = lambda x : x[0])
@@ -242,18 +274,21 @@ def get_evalutation(code):
     return process_data.evulation2json(data)
 
 def get_daily_evalutation(code):
+    conn = engine.connect()
     sql = "select date, daily_proper_price from daily_evalutation where code = %s and date >= %s"
     data = list(conn.execute(sql, (code, b4_3year)).fetchall())
 
     return process_data.daily_evalu(data)
 
 def findDailyIndicator(code):
+    conn = engine.connect()
     sql = "select date, per, pbr, psr from stock_marcap where code = %s and date >= %s"
     data = list(conn.execute(sql, (code, b4year)).fetchall())
 
     return process_data.daily_indicator(data)
 
 def findSimilarstock(code):
+    conn = engine.connect()
     sql = "select ck.sector, sm.date from corp_krx as ck inner join stock_marcap as sm on ck.code = sm.code where ck.code = %s order by date DESC limit 1"
     data = list(conn.execute(sql, code).fetchall())
     
