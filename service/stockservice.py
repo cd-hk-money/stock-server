@@ -315,5 +315,3 @@ def findSimilarstock(code):
     data = list(conn.fetchall())
 
     return process_data.similarStock(data)
-    
-    

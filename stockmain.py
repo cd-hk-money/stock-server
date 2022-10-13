@@ -7,6 +7,8 @@ import nest_asyncio
 import service.stockservice as stockservice
 import service.stocknews as stocknews
 
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 # ##--------------- Eureka 설정 --------------##
 # nest_asyncio.apply()
 
@@ -47,6 +49,7 @@ async def daily_total():
     data = stockservice.find_daily_total()
     return data
 
+##KOSPI, NASDAQ, S&P500 종합 지수, US 채권 수익률, 환율(USD/KRW) 2주전과 현재 비교
 @app.get("/daily/market")
 async def daily_market():
     data = stockservice.getDailyMarket()
