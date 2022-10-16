@@ -130,6 +130,7 @@ def data2graph3(datas, type):
     dic[type]["values"] = value
     
     return dic
+
 #재무제표 key, value 맞춰주기
 def state2dict(datas):
     dict = defaultdict(list)
@@ -205,7 +206,9 @@ def daily_indicator(datas):
 def similarStock(datas, sector):
     dic = []
     dic.append({"sector": sector})
-    for code, name, market, close, changes, changes_ratio in datas:
-        dic.append({"code": code, "name": name, "market": market, "close": close, "changes": changes, "changes_ratio":changes_ratio})
+    for data in datas:
+        for code, name, market, close, changes, changes_ratio, evalutation_score in data:
+            dic.append({"code": code, "name": name, "market": market, "close": close, "changes": changes, 
+            "changes_ratio":changes_ratio, "evalutation_score": evalutation_score})
         
     return dic

@@ -175,6 +175,7 @@ def graphvolume5year(code):
     res1 = process_data.data2graph(data)
     res2 = process_data.data2graph2(data)
     
+
     res.update(res1)
     res.update(res2)
     
@@ -307,12 +308,22 @@ def findSimilarstock(code):
     sql = "select ck.sector, sm.date from corp_krx as ck inner join stock_marcap as sm on ck.code = sm.code where ck.code = %s order by date DESC limit 1"
     conn.execute(sql, code)
     data = list(conn.fetchall())
-
+    
     sector, date = data[0][0], data[0][1]
     
-    sql = "select code, name, market, close, changes, changes_ratio from stock_marcap where code in (select code from corp_krx where sector = %s) and date = %s"
+    sql = "select code from stock_marcap where code in (select code from corp_krx where sector = %s) and date = %s"
     conn.execute(sql, (sector, date))
-    data = list(conn.fetchall())
-    print(data)
+    datas = list(conn.fetchall())
 
-    return process_data.similarStock(data, sector)
+    datas2 = []
+    for data in datas:
+        code = data[0]
+        sql = "select sm.code, sm.name, sm.market, sm.close, sm.changes, sm.changes_ratio, de.evalutation_score from stock_marcap as sm \
+                inner join daily_evalutation as de ON sm.code = de.code and sm.date = de.date where sm.code = %s and sm.date = %s"    
+        conn.execute(sql, (code, date))
+        tmp = list(conn.fetchall())
+
+        if tmp:
+            datas2.append(tmp)
+
+    return process_data.similarStock(datas2, sector)
