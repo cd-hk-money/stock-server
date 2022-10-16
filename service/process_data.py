@@ -43,19 +43,35 @@ def dailyScore(datas):
 
     for data in datas:
         date, type, value = data
-    
         dic[type].append(value)
     
-    #2주전과 비교한 결과값
-    ksp = round((1 - dic["KOSPI"][0] / dic["KOSPI"][-1]) * 100, 1)
-    nas = round((1 - dic["NASDAQ"][0] / dic["NASDAQ"][-1]) * 100, 1)
-    snp = round((1 - dic["S&P500"][0] / dic["S&P500"][-1]) * 100, 1)
-    krwrate = round((1 - dic["USD/KRW"][0] / dic["USD/KRW"][-1]) * 100, 1)
+    kl = len(dic["KOSPI"])
+    nl = len(dic["NASDAQ"])
+    sl = len(dic["S&P500"])
+    krl = len(dic["USD/KRW"])
 
-    res.append({"market": "KOSPI", "trend": ksp})
-    res.append({"market": "NASDAQ", "trend": nas})
-    res.append({"market": "S&P500", "trend": snp})
-    res.append({"market": "USD/KRW", "trend": krwrate})
+    #1달전과 비교한 결과값
+    kspMonth = round((1 - dic["KOSPI"][0] / dic["KOSPI"][-1]) * 100, 1)
+    nasMonth = round((1 - dic["NASDAQ"][0] / dic["NASDAQ"][-1]) * 100, 1)
+    snpMonth = round((1 - dic["S&P500"][0] / dic["S&P500"][-1]) * 100, 1)
+    krwrateMonth = round((1 - dic["USD/KRW"][0] / dic["USD/KRW"][-1]) * 100, 1)
+
+    #2주전과 비교한 결과값
+    ksp2week = round((1 - dic["KOSPI"][0] / dic["KOSPI"][kl//2]) * 100, 1)
+    nas2week = round((1 - dic["NASDAQ"][0] / dic["NASDAQ"][nl//2]) * 100, 1)
+    snp2week = round((1 - dic["S&P500"][0] / dic["S&P500"][sl//2]) * 100, 1)
+    krwrate2week = round((1 - dic["USD/KRW"][0] / dic["USD/KRW"][krl//2]) * 100, 1)
+
+    #1주전과 비교한 결과값
+    kspWeek = round((1 - dic["KOSPI"][0] / dic["KOSPI"][kl-kl//4]) * 100, 1)
+    nasWeek = round((1 - dic["NASDAQ"][0] / dic["NASDAQ"][nl-nl//4]) * 100, 1)
+    snpWeek = round((1 - dic["S&P500"][0] / dic["S&P500"][sl-sl//4]) * 100, 1)
+    krwrateWeek = round((1 - dic["USD/KRW"][0] / dic["USD/KRW"][krl-krl//4]) * 100, 1)
+
+    res.append({"market": "KOSPI", "monthlyTrend": kspMonth, "weeklyTrend2" : ksp2week, "weeklyTrend" : kspWeek})
+    res.append({"market": "NASDAQ", "monthlyTrend": nasMonth, "weeklyTrend2" : nas2week, "weeklyTrend" : nasWeek})
+    res.append({"market": "S&P500", "monthlyTrend": snpMonth, "weeklyTrend2" : snp2week, "weeklyTrend" : snpWeek})
+    res.append({"market": "USD/KRW", "monthlyTrend": krwrateMonth, "weeklyTrend2" : krwrate2week, "weeklyTrend" : krwrateWeek})
 
     return res
 

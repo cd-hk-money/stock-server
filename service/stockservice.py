@@ -18,7 +18,7 @@ conn = connect.cursor()
 connect.commit()
 
 today = datetime.now().strftime("%Y-%m-%d") # 오늘
-b4week = (datetime.now() - relativedelta(weeks=2)).strftime("%Y-%m-%d") # 2주전 
+b4month = (datetime.now() - relativedelta(weeks=4)).strftime("%Y-%m-%d") # 1달전 
 stdday = (datetime.now() - relativedelta(years=5)).strftime("%Y-%m-%d") # 5년전 오늘
 b4year = (datetime.now() - relativedelta(years=1)).strftime("%Y-%m-%d") # 1년전 오늘
 b4_3year = (datetime.now() - relativedelta(years=3)).strftime("%Y-%m-%d") # 3년전 오늘
@@ -59,7 +59,7 @@ def find_daily_total():
 
 def getDailyMarket():
     sql = "Select date, type, close from daily_total where type NOT IN ('US10YT', 'US1YT', 'US5YT') and date between %s and %s"
-    conn.execute(sql, (b4week, today))
+    conn.execute(sql, (b4month, today))
     temp = list(conn.fetchall())
     data = process_data.dailyScore(temp)
 
