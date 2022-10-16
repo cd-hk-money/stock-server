@@ -39,24 +39,23 @@ def findtop(type, datas):
 #오늘의 KOSPI, NASDAQ, S&P500, USD/KRW 수치 변화
 def dailyScore(datas):
     dic = defaultdict(list)
-    res = dict()
+    res = []
 
     for data in datas:
         date, type, value = data
-
+    
         dic[type].append(value)
     
-    #타입별 값계산
+    #2주전과 비교한 결과값
     ksp = round((1 - dic["KOSPI"][0] / dic["KOSPI"][-1]) * 100, 1)
     nas = round((1 - dic["NASDAQ"][0] / dic["NASDAQ"][-1]) * 100, 1)
     snp = round((1 - dic["S&P500"][0] / dic["S&P500"][-1]) * 100, 1)
     krwrate = round((1 - dic["USD/KRW"][0] / dic["USD/KRW"][-1]) * 100, 1)
 
-    print(ksp)
-    res["KOSPI"] = "KOSPI는(은) 2주전 보다 {}% 상승 했습니다".format(ksp) if ksp > 0 else "KOSPI는(은) 2주전 보다 {}% 하락 했습니다".format(abs(ksp))
-    res["NASDQ"] = "NASDAQ은(는) 2주전 보다 {}% 상승 했습니다".format(nas) if nas > 0 else "NASDAQ은(는) 2주전 보다 {}% 하락 했습니다.".format(abs(nas))
-    res["S&P500"] = "S&P500은(는) 2주전 보다 {}% 상승 했습니다".format(snp) if snp > 0 else "S&P500은(는) 2주전 보다 {}% 하락 했습니다".format(abs(snp))
-    res["KRW/USD"] = "환율은(는) 2주전 보다 {}% 상승 했습니다".format(krwrate) if krwrate > 0 else "환율은(는) 2주전 보다 {}% 하락 했습니다".format(abs(krwrate))
+    res.append({"market": "KOSPI", "trend": ksp})
+    res.append({"market": "NASDAQ", "trend": nas})
+    res.append({"market": "S&P500", "trend": snp})
+    res.append({"market": "USD/KRW", "trend": krwrate})
 
     return res
 
@@ -187,9 +186,9 @@ def daily_indicator(datas):
     return dic
 
 # 유사종목 key, value 맞춰주기
-def similarStock(datas):
+def similarStock(datas, sector):
     dic = []
-    
+    dic.append({"sector": sector})
     for code, name, market, close, changes, changes_ratio in datas:
         dic.append({"code": code, "name": name, "market": market, "close": close, "changes": changes, "changes_ratio":changes_ratio})
         

@@ -313,5 +313,6 @@ def findSimilarstock(code):
     sql = "select code, name, market, close, changes, changes_ratio from stock_marcap where code in (select code from corp_krx where sector = %s) and date = %s"
     conn.execute(sql, (sector, date))
     data = list(conn.fetchall())
+    print(data)
 
-    return process_data.similarStock(data)
+    return process_data.similarStock(data, sector)
