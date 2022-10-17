@@ -7,7 +7,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from dbms import db
 from sklearn.preprocessing import MinMaxScaler
-
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers import LSTM
 
 conn = db.engine.connect()
 
@@ -36,8 +40,6 @@ df['volume'] = round(df['volume'] * (last_stock / df['stocks']))
 df['per'] = round(df['per'] * std, 1)
 df['pbr'] = round(df['pbr'] * std, 1)
 
-print(df)
-
 # 데이터 정규화 
 scaler = MinMaxScaler()
 scale_cols = ['close', 'open', 'high', 'low', 'volume', 'per', 'pbr']
@@ -46,26 +48,63 @@ df_scale = scaler.fit_transform(df[scale_cols])
 df_scale = pd.DataFrame(df_scale)
 df_scale.columns = scale_cols
 
-print(df_scale)
-
 # 데이터 셋
 size = 200
 train = df_scale[:-size]
 test = df_scale[-size:]
 
 def make_dataset(data, label, window_size):
-    feature = []
-    label = []
+    f_list= []
+    l_list = []
 
     for i in range(len(data) - window_size):
-        feature.append(np.array(data.iloc[i:i+window_size]))
-        label.append(np.array(label.iloc[i+window_size]))
+        f_list.append(np.array(data.iloc[i:i+window_size]))
+        l_list.append(np.array(label.iloc[i+window_size]))
     
-    return np.array(feature), np.array(label)
+    return np.array(f_list), np.array(l_list)
 
 f_cols = ['open', 'high', 'low', 'volume', 'per', 'pbr']
 l_cols = ['close']
 
 train_f = train[f_cols]
 train_l = train[l_cols]
+
 train_f, train_l = make_dataset(train_f, train_l, 20)
+x_train, x_valid, y_train, y_valid = train_test_split(train_f, train_l, test_size=0.2)
+
+test_f = test[f_cols]
+test_l = test[l_cols]
+
+test_f, test_l = make_dataset(test_f, test_l, 20)
+
+# 모형 학습
+model = Sequential()
+model.add(LSTM(16,
+                input_shape=(train_f.shape[1], train_f.shape[2]),
+                activation='relu',
+                return_sequences=False)
+            )
+
+model.add(Dense(1))
+
+model.compile(loss='mean_squared_error', optimizer='adam')
+early_stop = EarlyStopping(monitor='val_loss', patience=40)
+
+model_path = 'model'
+filename = os.path.join(model_path, 'tmp_checkpoint.h5')
+checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+
+history = model.fit(x_train, y_train,
+                                    epochs=200,
+                                    batch_size=16,
+                                    validation_data=(x_valid, y_valid),
+                                    callbacks=[early_stop, checkpoint])
+                                
+model.load_weights(filename)
+pred = model.predict(test_f)
+
+plt.figure(figsize=(12, 9))
+plt.plot(test_l, label = 'actual')
+plt.plot(pred, label = 'prediction')
+plt.legend()
+plt.show()
