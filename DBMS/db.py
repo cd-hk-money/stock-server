@@ -2,7 +2,8 @@ from multiprocessing import pool
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import json, os
+import json, os, sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE = os.path.join(BASE_DIR, 'config.json')
