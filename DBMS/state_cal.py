@@ -647,7 +647,7 @@ def daily_evalu_update():
                 print("계산할 수 없습니다. can't devide zero ")
                 continue
 
-            v = round((eps * (data[2] / data[1])) * 100), 1
+            v = round((eps * (data[2] / data[1])) * 100)
 
             sql = "INSERT INTO daily_evalutation (date, code, daily_proper_price, evalutation_score) values(%s, %s, %s, %s) \
             ON DUPLICATE KEY UPDATE daily_proper_price = %s, evalutation_score = %s"
