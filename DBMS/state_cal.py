@@ -353,6 +353,7 @@ def total_day():
 # 업종 평균 PER, PBR, PSR 초회 세팅용
 def sector_pebr():
     krx = fdr.StockListing('KRX')
+    print(krx)
     temp = krx.drop(['Symbol', 'Market', 'Name', 'Industry', 'ListingDate', 'SettleMonth', 'Representative', 'HomePage', 'Region'], axis=1)
     temp = temp.groupby('Sector').count()
 
