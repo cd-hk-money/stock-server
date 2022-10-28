@@ -350,21 +350,28 @@ def total_day():
 
     return data[0][0]
 
+# 업종 리스트 가져오기
+def sectorList():
+    sql = "select distinct sector from corp_krx"
+    data = conn.execute(sql).fetchall()
+
+    return data
+
+def sectorCodes(sector):
+    sql = "select distinct code from corp_krx where sector = %s"
+    data = conn.execute(sql, sector).fetchall()
+
+    return data
+
 # 업종 평균 PER, PBR, PSR 초회 세팅용
 def sector_pebr():
-    krx = fdr.StockListing('KRX')
-    print(krx)
-    temp = krx.drop(['Symbol', 'Market', 'Name', 'Industry', 'ListingDate', 'SettleMonth', 'Representative', 'HomePage', 'Region'], axis=1)
-    temp = temp.groupby('Sector').count()
-
-    sector_list = list(temp.index.values)
-
+    allsector = sectorList()
     start = check_date()
     end = std_day() # 현재 이부분이 수동으로 조절 해야함..
 
     # 161개의 업종을 하나씩 순회
-    for sector in sector_list:
-        data = krx[krx['Sector'] == sector]['Symbol']
+    for sector in allsector:
+        data = sectorCodes(sector[0])
         for date in date_range(start, end):
             date = datetime.strftime(date, "%Y-%m-%d")
 
@@ -373,7 +380,7 @@ def sector_pebr():
             for code in data:
                 # 업종 평균 PER, PBR, PSR 을 구하려면 쿼리문이 이게 최선일까?
                 sql = "select per, pbr, psr from stock_marcap where code = %s and date = %s"
-                temp = conn.execute(sql, (code, date)).fetchall()
+                temp = conn.execute(sql, (code[0], date)).fetchall()
                 
                 temp = list(temp)
                 if len(temp) == 0:
