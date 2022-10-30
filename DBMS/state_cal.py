@@ -665,6 +665,40 @@ def daily_evalu_update():
 
         print(code + "is OK")
 
+# 돈다지수 초회 세팅 (임시)
+def daily_donda():
+    for code in code_list:
+        code = "005930"
+        sql = "select date, proper_price, s_rim from stock_indicator where code = %s and proper_price != 0 order by date ASC"
+        datas = conn.execute(sql, code).fetchall()
+
+        n = len(datas)
+        #1년치 미만은 계산 X
+        if n < 4:
+            print("이 기업은 1년 미만의 데이터를 갖고 있습니다")
+            continue
+        
+        #분기에 해당하는 일일 적정주가 가져오기
+        for i in range(1, n):
+            start = datas[i-1][0] + "-01" 
+            end = datas[i][0] + "-01" if i != n-1 else std_day()
+
+            value = datas[i-1][1] + datas[i-1][2]
+
+            sql = "select date, daily_proper_price from daily_evalutation where code = %s and date between %s and %s"
+            datas2 = conn.execute(sql, (code, start, end)).fetchall()
+            
+            for date, daily_p in datas2:
+                donda = round((value + daily_p) / 3) # 평균 낸 돈다지수
+
+                # sql = "UPDATE daily_evalutation SET donda_score = %s where code = %s and date = %s" 
+                # conn.execute(sql, (donda, code, date))
+                print(date, donda)
+        
+        print(code + " is OK")
+        break
+daily_donda()
+
 # 일일 적정주가와 현재주가를 비교, 계산
 def daily_evalu_score():
     for code in code_list:

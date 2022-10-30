@@ -210,8 +210,8 @@ def daily_total():
         volume = row[6]
         changes = close - op
 
-        # sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        # conn.execute(sql, (date, t, close, op, high, low, volume, changes))
+        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
 
         print(date + " KOSPI OK")
     
@@ -229,8 +229,8 @@ def daily_total():
         volume = row[6]
         changes = close - op
 
-        # sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        # conn.execute(sql, (date, t, close, op, high, low, volume, changes))
+        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " S&P500 OK")
 
     t = "NASDAQ"
@@ -247,8 +247,8 @@ def daily_total():
         volume = row[6]
         changes = close - op
 
-        # sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        # conn.execute(sql, (date, t, close, op, high, low, volume, changes))
+        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " NASDAQ OK")
 
     t = "US1YT"
@@ -310,7 +310,6 @@ def daily_total():
     
     t = "USD/KRW"
     df = fdr.DataReader("USD/KRW", last_total)
-    print(df.index)
     df.reset_index(drop = False, inplace=True)
     df = df.values.tolist()
 
@@ -322,12 +321,11 @@ def daily_total():
         low = row[3]
         volume = row[6]
         changes = close - op
-
         
         volume = 0 #환율은 거래량이 없다
         
-        # sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
-        # conn.execute(sql, (date, t, close, op, high, low, volume, changes))
+        sql = "INSERT INTO daily_total (date, type, close, open, high, low, volume, changes) values(%s, %s, %s, %s, %s, %s, %s, %s)"
+        conn.execute(sql, (date, t, close, op, high, low, volume, changes))
         print(date + " USD/KRW OK")
     
     # conn.commit()
