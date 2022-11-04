@@ -27,11 +27,11 @@ find_code()
 # 연결 보고서를 각 분기별 보고서로 만들기
 def report_cal():
     for code in code_list:
-        for year in range(2021, 2023):
+        for year in range(2022, 2023):
             sql = "select * from stock_statements_origin where code = %s and date like %s"
 
-            conn.execute(sql, (code, str(year) + "%"))
-            temp = list(conn.execute(sql).fetchall())
+            temp = conn.execute(sql, (code, str(year) + "%")).fetchall()
+            # temp = list(conn.execute(sql).fetchall())
 
             datas = []
             for val in temp:
@@ -121,7 +121,7 @@ def cal_statement():
             total_stock = sum(data[0] for data in datas)
     
         sql = "SELECT code, date, type, equity, equity_non, profit, profit_non \
-                from stock_statements where code = %s and date >= 2020-12"
+                from stock_statements where code = %s and date >= 2021-09"
         
         datas = list(conn.execute(sql, code).fetchall())
 
@@ -162,7 +162,7 @@ def cal_statement():
 # PER, PBR 계산
 def pebr_statement():
     for code in code_list:
-        sql = "Select date, eps, bps from stock_indicator where code = %s"
+        sql = "Select date, eps, bps from stock_indicator where code = %s limit 4"
         indi = list(conn.execute(sql, code).fetchall())
 
         if len(indi) == 0:
@@ -198,9 +198,10 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    start = check_date()
+    # start = check_date()
+    # end = std_day()
+    start = "2022-06-01"
     end = std_day()
-
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
         sql = "Select eps, bps from stock_indicator where code = %s ORDER BY date DESC limit 4"
@@ -214,7 +215,7 @@ def every_pebr():
             bps = temp[0][1]
 
         # 마지막 재무제표에서 매출액 뽑아오기
-        sql = "Select revenue from stock_statements where code = %s and date = '2022-03'"
+        sql = "Select revenue from stock_statements where code = %s order by date DESC limit 1"
         temp = conn.execute(sql, code).fetchall()
         
         if len(temp) == 0:
@@ -665,10 +666,9 @@ def daily_evalu_update():
 
         print(code + "is OK")
 
-# 돈다지수 초회 세팅 (임시)
+# 돈다지수 초회 세팅 (구현은 O)
 def daily_donda():
     for code in code_list:
-        code = "005930"
         sql = "select date, proper_price, s_rim from stock_indicator where code = %s and proper_price != 0 order by date ASC"
         datas = conn.execute(sql, code).fetchall()
 
@@ -696,9 +696,7 @@ def daily_donda():
                 print(date, donda)
         
         print(code + " is OK")
-        break
-daily_donda()
-
+    
 # 일일 적정주가와 현재주가를 비교, 계산
 def daily_evalu_score():
     for code in code_list:

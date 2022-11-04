@@ -41,11 +41,11 @@ def every_do():
 
 # 재무제표
 def stock_statement():
-    f = open("21_22_statement.csv", 'r', encoding="cp949")
+    f = open("22_0203.csv", 'r', encoding="cp949")
     csvReader = csv.reader(f)
 
     for row in csvReader:
-        if row[0] == "열1": #첫 행은 컬럼명이니까 PASS
+        if row[0] == "Column1": #첫 행은 컬럼명이니까 PASS
             continue
 
         code = row[1].zfill(6)
@@ -80,7 +80,7 @@ def stock_statement():
 
         print(code + " " + report_type + " OK")
 
-    conn.commit()
+    # conn.commit()
     f.close()
     conn.close()
 
@@ -111,7 +111,7 @@ def KRXstock_List():
             sql = "INSERT IGNORE INTO corp_krx (code, market, name, sector, industry) values(%s, %s, %s, %s, %s)"
             conn.execute(sql, (Code, Market, Name, Sector, Industry))
     
-    conn.commit()
+    # conn.commit()
     f.close()
     conn.close()
 
