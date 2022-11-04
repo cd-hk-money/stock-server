@@ -198,10 +198,11 @@ def pebr_statement():
 
 # PER, PBR, PSR 업데이트용
 def every_pebr():
-    # start = check_date()
-    # end = std_day()
-    start = "2022-06-01"
+    start = check_date()
     end = std_day()
+    # start = "2022-06-01"
+    # end = std_day()
+
     for code in code_list:
         # 마지막 재무제표에서 EPS, BPS 뽑아오기 
         sql = "Select eps, bps from stock_indicator where code = %s ORDER BY date DESC limit 4"
@@ -368,8 +369,8 @@ def sectorCodes(sector):
 def sector_pebr():
     allsector = sectorList()
     start = check_date()
-    end = std_day() # 현재 이부분이 수동으로 조절 해야함..
-
+    end = std_day()
+    
     # 161개의 업종을 하나씩 순회
     for sector in allsector:
         data = sectorCodes(sector[0])
@@ -401,9 +402,9 @@ def sector_pebr():
             if per == 0 and pbr == 0 and psr == 0:
                 continue
             
-            sql = "INSERT INTO stock_sector_daily (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
-            # sql = "UPDATE stock_sector SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
-            conn.execute(sql, (date, sector, per, pbr, psr))
+            # sql = "INSERT INTO stock_sector_daily (date, sector, sector_per, sector_pbr, sector_psr) values (%s, %s, %s, %s, %s)"
+            sql = "UPDATE stock_sector_daily SET sector_per = %s, sector_pbr = %s, sector_psr = %s where date = %s and sector = %s"
+            conn.execute(sql, (per, pbr, psr, date, sector[0]))
             print(sector, date, " OK")
             
     # conn.commit()
@@ -411,25 +412,21 @@ def sector_pebr():
 
 #업종평균 EPS, BPS, ROE (최적화 필요)
 def sector_indicator():
-    krx = fdr.StockListing('KRX')
-    temp = krx.drop(['Symbol', 'Market', 'Name', 'Industry', 'ListingDate', 'SettleMonth', 'Representative', 'HomePage', 'Region'], axis=1)
-    temp = temp.groupby('Sector').count()
+    sector_list = sectorList()
 
-    sector_list = list(temp.index.values)
-
-    for sector in sector_list:  
-        data = krx[krx['Sector'] == sector]['Symbol']
-        start = datetime.strptime("2016-03", "%Y-%m")
-        end = datetime.strptime("2022-03", "%Y-%m")
+    for sector in sector_list:
+        data = sectorCodes(sector[0])  
+        start = datetime.strptime("2022-06", "%Y-%m")
+        end = datetime.strptime("2022-09", "%Y-%m")
 
         eps, bps, roe = 0, 0, 0
 
-        while start <= end: # 2016-03 ~ 2022-03 6년치 계산
+        while start <= end: 
             std = start.strftime("%Y-%m")
             N = len(data)
             for code in data:
                 sql = "select eps, bps, roe from stock_indicator where code = %s and date = %s"
-                q = list(conn.execute(sql, (code, std)).fetchall())
+                q = list(conn.execute(sql, (code[0], std)).fetchall())
 
                 if len(q) == 0:
                     N -= 1
@@ -444,26 +441,29 @@ def sector_indicator():
                 bps = round(bps/N, 2)
                 roe = round(roe/N, 2)
             
-            # sql = "INSERT INTO stock_sector (date, sector, sector_eps, sector_bps, sector_roe) values (%s, %s, %s, %s, %s)"
-            sql = "UPDATE stock_sector SET sector_eps = %s, sector_bps = %s, sector_roe = %s where date = %s and sector = %s"
-            conn.execute(sql, (eps, bps, roe, std, sector))
-            print(sector + " OK")
+            sql = "INSERT INTO stock_sector (date, sector, sector_eps, sector_bps, sector_roe) values (%s, %s, %s, %s, %s)"
+            # sql = "UPDATE stock_sector SET sector_eps = %s, sector_bps = %s, sector_roe = %s where date = %s and sector = %s"
+            # conn.execute(sql, (eps, bps, roe, std, sector[0]))
+            conn.execute(sql, (std, sector[0], eps, bps, roe))
+            print(sector[0] + " OK")
             start += rt(months=3)
     
     # conn.commit()
+    conn.close()
 
 # EPS 증가율 계산
-def cal_epsRate():
+def cal_epsrate():
     for code in code_list:
-        sql = "select date, eps from stock_indicator where code = %s"
+        sql = "select date, eps from stock_indicator where code = %s order by date DESC limit 4"
         datas = list(conn.execute(sql, code).fetchall())
         
-        for i in range(1, len(datas)):
+        for i in range(len(datas)-1, 0, -1):
             if datas[i][1] == 0 or datas[i-1][1] == 0:
                 print(code + " EPS is zero")
                 continue
-            eps_rate = round(((datas[i][1] - datas[i-1][1]) / datas[i-1][1]) * 100, 1)
-            date = datas[i][0]
+
+            eps_rate = round(((datas[i-1][1] - datas[i][1]) / datas[i][1]) * 100, 1)
+            date = datas[i-1][0]
             sql = "UPDATE stock_indicator SET eps_increase = %s where code = %s and date = %s"
             conn.execute(sql, (eps_rate, code, date))
 
@@ -476,7 +476,7 @@ def cal_epsRate():
 def cal_pegr():
     for code in code_list:
         sql = "select date, eps_increase from stock_indicator where code = %s"    
-        datas = list(conn.execute(sql, code).fetchall())[1:]
+        datas = list(conn.execute(sql, code).fetchall())[-3:]
         
         if len(datas) == 0:
             print("재무제표가 없는 기업입니다")
@@ -489,7 +489,7 @@ def cal_pegr():
             temp = list(conn.execute(sql, (code, date)).fetchall())
 
             if len(temp) == 0:
-                print("per이 없어용")
+                print("per이 없습니다")
                 continue
 
             per = temp[0][0]
@@ -517,8 +517,6 @@ def cal_evalu():
         if len(datas) == 0:
             print("잘못된 기업명 or 데이터가 없다")
             continue
-
-        # conn.commit()
         
         for i in range(3, len(datas)):
             eps = datas[i][1] + datas[i-1][1] + datas[i-2][1] + datas[i-3][1]
@@ -536,7 +534,6 @@ def cal_evalu():
             # S-Rim 적정주가
             sql = "select equity, equity_non from stock_statements where code = %s and date = %s"
             datas2 = conn.execute(sql,  (code, datas[i][0])).fetchall()
-            # conn.commit()
 
             equity = datas2[0][0] - datas2[0][1] # 자본총계 (지배)
             rate = 10.2 # 한국 신용평가의 BBB- 등급 채권의 5년 수익률 
@@ -557,6 +554,8 @@ def cal_evalu():
 
             sql = "update stock_indicator set proper_price = %s, s_rim = %s where code = %s and date = %s"
             conn.execute(sql, (eval1, eval2, code, datas[i][0]))
+    
+    conn.close()
 
 #적정주가 일일 계산 초회 세팅용 (+ 재무재표가 추가된다면)
 # 계산식 : EPS * PBR/PER
@@ -631,7 +630,7 @@ def evalu_lastday(code):
 # 일일 적정주가 업데이트용 
 def daily_evalu_update():
     for code in code_list:
-        sql = "select date, eps from stock_indicator where code = %s ORDER BY date DESC limit 4"
+        sql = "select date, eps from stock_indicator where code = %s and date <= '2022-06' limit 4"
         datas = conn.execute(sql, code).fetchall()
 
         #1년치 재무제표가 없다면 구할 수 없다.
@@ -645,7 +644,7 @@ def daily_evalu_update():
         tmp = evalu_lastday(code)
         if tmp == False:
             continue
-        start = tmp
+        start = "2022-09-01"
         end = std_day()
 
         sql = "select date, per, pbr from stock_marcap where code = %s and date between %s and %s"
@@ -658,10 +657,10 @@ def daily_evalu_update():
 
             v = round((eps * (data[2] / data[1])) * 100)
 
-            sql = "INSERT INTO daily_evalutation (date, code, daily_proper_price, evalutation_score) values(%s, %s, %s, %s) \
-            ON DUPLICATE KEY UPDATE daily_proper_price = %s, evalutation_score = %s"
+            sql = "INSERT INTO daily_evalutation (date, code, daily_proper_price, evalutation_score, donda_score) values(%s, %s, %s, %s, %s) \
+            ON DUPLICATE KEY UPDATE daily_proper_price = %s, evalutation_score = %s, donda_score = 0"
             # sql = "UPDATE daily_evalutation SET daily_proper_price = %s, evalutation_score= %s where date = %s and code = %s"
-            conn.execute(sql, (data[0], code, v, 0, v, 0))
+            conn.execute(sql, (data[0], code, v, 0, 0, v, 0))
             # conn.commit()
 
         print(code + "is OK")
@@ -700,7 +699,8 @@ def daily_donda():
 # 일일 적정주가와 현재주가를 비교, 계산
 def daily_evalu_score():
     for code in code_list:
-        sql = "select date, daily_proper_price from daily_evalutation where code = %s and evalutation_score = 0 order by date"
+        # sql = "select date, daily_proper_price from daily_evalutation where code = %s and evalutation_score = 0 order by date"
+        sql = "select date, daily_proper_price from daily_evalutation where code = %s and date between '2022-09-01' and '2022-11-04'"
         datas = list(conn.execute(sql, code).fetchall())
 
         if len(datas) == 0:
