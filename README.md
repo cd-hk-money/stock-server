@@ -5,7 +5,7 @@
     - 매일 KOSPI 상장된 기업의 종가 및 가격지표, 보조지표 업데이트, 제공
     - 종목 재무제표와 가격지표를 활용한 보조지표, 평가지수 제공
     - 종목의 뉴스 제공
-
+---
 ### 구조
     Capstone_data
     ├─ DBMS # 주가 데이터베이스 업데이트
@@ -25,7 +25,7 @@
     │  ├─ stocknews.py
     │  └─ stockservice.py
     └─ stockmain.py
-
+---
 ### API 설계
 #### 시장지표 및 기본
     /krx-corps : 검색 자동완성 (코드 <-> 기업)
@@ -52,3 +52,12 @@
     
     /stock/{종목코드}/evaluation : 종목 적정주가 (분기)
     /stock/{종목코드}/evaluation/daily : 종목 적정주가 (일일)
+---
+### 개발환경 및 사용 외부 라이브러리
+#### 개발환경
+    - Python 3.7.10
+    - FASTapi 0.85.0
+    - MySQL 8.0.31
+#### 외부 라이브러리
+    - Finance Data Reader : 시장지표 라이브러리
+    - Marcap : 종목 주가데이터 라이브러리
